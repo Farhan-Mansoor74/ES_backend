@@ -6,7 +6,7 @@ import ordersRouter from './routes/addOrder.js';
 import signUpRouter from './routes/signup.js';
 import loginRouter from './routes/login.js';
 
-import logger from './logger.js';
+//import logger from './logger.js';
 
 import cors from 'cors';
 
@@ -21,7 +21,7 @@ app.use(cors({
 }));
 
 // Middleware to log HTTP requests sent
-app.use(logger);
+//app.use(logger);
 
 // Middleware to parse incoming JSON request bodies
 app.use(express.json());
@@ -29,8 +29,13 @@ app.use(express.json());
 // Serves static files from public directory
 app.use(express.static('public'));
 
+// Serve index.html when visiting the root URL
+app.get('/', (req, res) => {
+    res.sendFile(path.resolve('public', 'index.html'));
+});
+
 // Mounting routers to specific routes
-app.use('/deals', productsRouter);
+app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
 app.use('/signup', signUpRouter);
 app.use('/login', loginRouter);

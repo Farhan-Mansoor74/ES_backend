@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EcoShopper</title>
+    <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+    <div id="app">
+        <!-- Navbar -->
+        <header class="topnav">
+            <!-- Logo -->
+            <a href="#">
+                <img src="http://localhost:5500/images/LevelUplogo.png" id="logo" alt="Logo"
+                    @click="toLandingPage" />
+            </a>
+
+            <!-- Search Container -->
+            <div class="search-container">
+                <form @submit.prevent="searchProducts">
+                    <input type="text" v-model="searchQuery" placeholder="Search products..." name="search"
+                        style="padding: 10px 20px" @input="debouncedSearch" />
+                    <button type="submit" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cart Button -->
+            <button @click="showCheckout" class="cart-button" :class="{ 'on-checkout': checkoutPage }"
+                :data-tooltip="checkoutPage ? 'Back to Shopping' : 'View Cart'">
+                <span class="fas fa-cart-plus"></span>
+                <sup>{{ cartItemCount }}</sup>
+            </button>
+        </header>
+
+        <!-- Custom Alert -->
+        <div id="alert-container">
+            <div v-for="alert in alerts" :key="alert.id" :class="['alert', `alert-${alert.type}`]">
+                <i :class="alert.icon"></i>
+                {{ alert.message }}
+            </div>
+        </div>
+
+        <!-- Landing Page Section -->
+        <main class="landing" v-if="!showProducts && !checkoutPage &&!showReceipt">
+            <div class="landing-section">
+                <div class="text-content">
+                    <h2>Welcome to {{ sitename }}</h2>
+                    <p>
+                        Discover the best deals from nearby stores in real time!
+                        EcoShopper helps you save money while reducing paper waste
+                        by bringing live shopping updates straight to your device.
+                    </p>
+                    <button class="view-products-btn" @click="viewProducts">
+                        View latest deals around you!
+                    </button>
+                </div>
+
+                <!-- Background Video Section -->
+                <div class="video-wrapper">
+                    <video autoplay muted loop class="background-video">
+                        <source src="http://localhost:5500/images/bg_vid.mp4" type="video/mp4" />
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+
+            <!-- products slideshow -->
+            <div class="slideshow-container">
+                <div class="mySlides fade">
+                    <div class="numbertext">1 / 3</div>
+                    <img src="http://localhost:5500/images/football.jpg" style="width: 100%" />
+                    <div class="text">Football</div>
+                </div>
+
+                <div class="mySlides fade">
+                    <div class="numbertext">2 / 3</div>
+                    <img src="http://localhost:5500/images/debate.jpg" style="width: 100%" />
+                    <div class="text">Debate</div>
+                </div>
+
+                <div class="mySlides fade">
+                    <div class="numbertext">3 / 3</div>
+                    <img src="http://localhost:5500/images/cricket.jpeg" style="width: 100%" />
+                    <div class="text">Cricket</div>
+                </div>
+            </div>
+
+            <br />
+
+            <div style="text-align: center">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </main>
+
+        <!-- Display products and Sort dropdowns -->
+        <main v-if="showProducts && !checkoutPage">
+            <div class="sort-section">
+                <label for="sort">Sort by:</label>
+                <select v-model="sortOption" @change="sortProducts">
+                    <option value="subject">Subject</option>
+                    <option value="location">Location</option>
+                    <option value="fee">Price</option>
+                    <option value="spaces">Availability</option>
+                </select>
+                <label for="order">Order:</label>
+                <select v-model="sortOrder" @change="sortProducts">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+
+            <div class="all-products">
+                <div v-for="product in searchResults" :key="product.id" class="product-card">
+                    <span class="availability-tag">{{ product.availableInventory }} available</span>
+
+                    <img :src="getImagePath(product.image)" alt="product Image" />
+                    <div class="product-title-wrap">
+                        <h2 v-text="product.subject"></h2>
+                        <p style="font-weight: bold">
+                            {{ product.fee }} AED
+                        </p>
+                    </div>
+                    <h6 class="location">Location: {{ product.location }}</h6>
+
+                    <div>
+                        <span v-for="n in product.rating"> ★ </span>
+                        <span v-for="n in 5 - product.rating"> ☆ </span>
+                    </div>
+                    <button @click="addToCart(product)" :disabled="product.availableInventory <= 0" class="addProduct">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Checkout Page -->
+        <main v-if="checkoutPage">
+            <div class="checkout-container">
+                <!-- Left Side: Customer Information -->
+                <div class="checkout-left">
+                    <h2>Checkout</h2>
+                    <div class="form-group">
+                        <label for="name"><strong>Name:</strong></label>
+                        <input id="name" v-model.trim="order.name" @input="validateName"
+                            :class="{'invalid': formErrors.name}" placeholder="Full Name" />
+                        <span class="error-message" v-if="formErrors.name">
+                            Please enter a valid name (letters only)
+                        </span>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone"><strong>Phone:</strong></label>
+                        <input id="phone" v-model.trim="order.phone" @input="validatePhone"
+                            :class="{'invalid': formErrors.phone}" type="tel" placeholder="Phone Number" />
+                        <span class="error-message" v-if="formErrors.phone">
+                            Please enter a valid phone number (numbers only)
+                        </span>
+                    </div>
+                </div>
+                <!-- Right Side: Cart Details -->
+                <div class="checkout-right">
+                    <h2>Your Cart ({{ cartItemCount }} items)</h2>
+                    <div v-for="product in cartDetails" :key="product.id" class="checkout-product">
+                        <img :src="getImagePath(product.image)" alt="Product Image" class="cart-image" />
+                        <div class="product-info">
+                            <span class="product-name">{{ product.subject }}</span>
+                            <span class="product-price">{{ product.fee }} AED per hour</span>
+                            <div class="quantity-controls">
+                                <span class="quantity-label">Quantity:</span>
+                                <button @click="removeFromCart(product)" class="quantity-btn"
+                                    :disabled="product.quantity <= 0" style="color:black">
+                                    -
+                                </button>
+                                <span class="quantity-value">{{ product.quantity }}</span>
+                                <button @click="addToCart(product)" class="quantity-btn"
+                                    :disabled="product.quantity >= originalInventory[product._id || product.id] "
+                                    style="color:black">
+                                    +
+                                </button>
+                                <span class="spaces-available">
+                                    ({{ originalInventory[product._id || product.id] - cart[product._id || product.id] || 0 }}
+                                    spaces available)
+                                </span>
+                            </div>
+                            <span class="subtotal">Subtotal: {{ product.quantity * product.fee }} AED</span>
+                        </div>
+                        <button @click="removeFromCart(product)" class="remove-btn">
+                            Remove All
+                        </button>
+                    </div>
+                    <div class="cart-total">
+                        <p>
+                            Total:
+                            <span class="price" style="color: black"><b>{{ cartTotal }} AED</b></span>
+                        </p>
+                    </div>
+                    <!-- Place Order Button -->
+                    <button class="place-order-btn" v-if="isOrderValid" @click="addOrder"
+                        :disabled="cartItemCount === 0">
+                        Place Order
+                    </button>
+                </div>
+            </div>
+
+            <!-- Back to products Button -->
+            <button class="back-btn" @click="viewProducts">
+                Back to deals
+            </button>
+
+            <!-- Loading Overlay -->
+            <div v-if="isLoading" class="loading-overlay">
+                <div class="spinner"></div>
+                <div class="loading-text">Processing your order...</div>
+            </div>
+        </main>
+
+        <!-- Receipt (Order Confirmation) -->
+        <main v-if="showReceipt" class="receipt-container">
+            <div class="receipt">
+                <div class="receipt-header">
+                    <img src="http://localhost:5500/images/LevelUplogo.png" alt="Logo"
+                        class="receipt-logo" />
+                    <h2>Order Confirmation</h2>
+                    <p class="receipt-date">{{ getCurrentDate() }}</p>
+                </div>
+
+                <div class="receipt-customer">
+                    <h3>Customer Details</h3>
+                    <p><strong>Name:</strong> {{ orderDetails.name }}</p>
+                    <p><strong>Phone:</strong> {{ orderDetails.phone }}</p>
+                </div>
+
+                <div class="receipt-items">
+                    <h3>Order Details</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>product</th>
+                                <th>Location</th>
+                                <th>Price (AED)</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="product in orderDetails.products" :key="product.id">
+                                <td>{{ product.subject }}</td>
+                                <td>{{ product.location }}</td>
+                                <td>{{ product.fee }} AED</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.subtotal }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="total-label">Total</td>
+                                <td class="total-amount">{{ orderDetails.total }} AED</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="receipt-footer">
+                    <p>Your order is confirmed.</p>
+                    <p>Thank you for choosing EcoShopper!</p>
+                </div>
+
+                <button @click="goToHome" class="home-button">
+                    <i class="fas fa-home"></i> Return to Home
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Vue App -->
+    <script type="text/javascript">
+        let webstore = new Vue({
+            el: "#app",
+            data: {
+                sitename: "EcoShopper",
+                products: [],
+                showProducts: false,
+                checkoutPage: false,
+                showReceipt: false,
+                orderDetails: {
+                    name: '',
+                    phone: '',
+                    products: [],
+                    total: 0,
+                    date: ''
+                },
+                cart: {},
+                originalInventory: {}, // Track original inventory levels
+                searchQuery: "",
+                sortOption: "subject", // Default sorting option
+                sortOrder: "asc", // Default sort order
+                alerts: [],
+                order: {
+                    name: "",
+                    phone: "",
+                },
+                slideIndex: 0,
+                searchResults: [],// Array to store search results
+                formErrors: {
+                    name: false,
+                    phone: false
+                },
+                debouncedSearch: null,
+                isLoading: false
+            },
+            mounted() {
+                this.fetchAllProducts();
+                this.$nextTick(() => {
+                    this.showSlides();
+                    this.searchResults = this.products; // Populate searchResults with all products initially
+                });
+
+                this.debouncedSearch = this.debounce(this.searchProducts, 300);
+            },
+            computed: {
+                cartItemCount: function () {
+                    return Object.values(this.cart).reduce((total, quantity) => total + quantity, 0);
+                },
+                cartDetails: function () {
+                    const details = [];
+                    for (const [productId, quantity] of Object.entries(this.cart)) {
+                        const product = this.products.find((c) => c._id === productId || c.id === productId);
+                        if (product) {
+                            details.push({
+                                ...product,
+                                quantity: quantity,
+                                subtotal: product.fee * quantity,
+                                maxAvailable: this.originalInventory[productId] || product.availableInventory // Use original inventory for max
+                            });
+                        }
+                    }
+                    return details;
+                },
+                cartTotal() {
+                    return this.cartDetails.reduce(
+                        (total, item) => total + (item.fee * item.quantity),
+                        0
+                    );
+                },
+                isOrderValid: function () {
+                    return this.isValidName(this.order.name) && this.isValidPhone(this.order.phone);
+                },
+            },
+            methods: {
+                // Fetches all products details
+                fetchAllProducts: async function () {
+                    console.log('FETCHING PRODUCTS');
+                    try {
+                        const response = await fetch('http://localhost:5500/products', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch products');
+                        }
+                        const data = await response.json();
+                        console.log(data);
+                        this.products = data;
+                        this.searchResults = data;
+
+                        // Store original inventory levels
+                        data.forEach(product => {
+                            const productId = product._id || product.id;
+                            this.originalInventory[productId] = product.availableInventory;
+                        });
+                    } catch (error) {
+                        console.error(error);
+                        alert('Error fetching products. Please try again later.');
+                    }
+                },
+
+                // Gets current date and time
+                getCurrentDate: function () {
+                    const date = new Date();
+                    return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+
+                // Connects image path with link
+                getImagePath(filename) {
+                    // Update the base URL for production
+                    const baseURL = "http://localhost:5500/images/";
+                    return `${baseURL}${filename}`;
+                },
+
+                // Show home page
+                goToHome: function () {
+                    this.showReceipt = false;
+                    this.showProducts = false;
+                    this.checkoutPage = false;
+                },
+
+                // Add order to database, request sent from frontend
+                addOrder: async function () {
+                    this.isLoading = true;
+                    try {
+                        const orderData = {
+                            name: this.order.name,
+                            phone: this.order.phone,
+                            cart: this.cartDetails.map(product => ({
+                                id: product._id || product.id,
+                                subject: product.subject,
+                                fee: product.fee,
+                                quantity: product.quantity
+                            })),
+                            total: this.cartTotal,
+                        };
+
+                        const response = await fetch('http://localhost:5500/orders', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(orderData),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to place the order');
+                        }
+
+                        // Update backend inventory
+                        for (let product of this.cartDetails) {
+                            await this.updateAvailability(product._id || product.id, product.quantity);
+                        }
+
+                        // Update receipt
+                        this.orderDetails = {
+                            name: this.order.name,
+                            phone: this.order.phone,
+                            products: this.cartDetails,
+                            total: this.cartTotal,
+                            date: this.getCurrentDate()
+                        };
+
+                        this.alertUser('Order placed successfully!', 'success');
+
+                        // Reset cart and form
+                        this.cart = {};
+                        this.order.name = '';
+                        this.order.phone = '';
+
+                        this.checkoutPage = false;
+                        this.showReceipt = true;
+
+                        // Refresh products data
+                        await this.fetchAllProducts();
+
+                    } catch (error) {
+                        console.error(error);
+                        this.alertUser('Error placing the order. Please try again later.', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                // Update product availability in backend
+                updateAvailability: async function (productId, quantity) {
+                    try {
+                        console.log('Updating availability:', {
+                            productId,
+                            quantity
+                        });
+
+                        const response = await fetch(`http://localhost:5500/updateproduct/${productId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ quantity }),
+                        });
+
+                        console.log('Update response:', {
+                            status: response.status,
+                            ok: response.ok
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error('Update error:', errorData);
+
+                            // Handle specific error cases
+                            if (response.status === 400) {
+                                this.alertUser(`Not enough spaces available. Only ${errorData.availableInventory} spaces left.`, 'error');
+                            } else if (response.status === 404) {
+                                this.alertUser('product not found.', 'error');
+                            } else {
+                                throw new Error('Failed to update availability');
+                            }
+                            return false;
+                        }
+
+                        const responseData = await response.json();
+                        console.log('Update response data:', responseData);
+                        return true;
+
+                    } catch (error) {
+                        console.error('Complete update error:', error);
+                        this.alertUser('Error updating product availability. Please try again later.', 'error');
+                        return false;
+                    }
+                },
+
+                // Add items to cart
+                addToCart: function (product) {
+                    console.log('Adding to cart:', product._id || product.id, product.subject);
+
+                    const productId = product._id || product.id;
+                    const originalInventory = this.originalInventory[productId];
+
+                    // Check against original inventory
+                    if (this.cart[productId] && this.cart[productId] >= originalInventory) {
+                        this.alertUser(`Maximum available spaces (${originalInventory}) reached for ${product.subject}!`, 'warning');
+                        return;
+                    }
+
+                    // Initialize or increment quantity
+                    if (this.cart[productId]) {
+                        this.cart[productId]++;
+                    } else {
+                        this.$set(this.cart, productId, 1);
+                    }
+
+                    // Update displayed inventory
+                    const productIndex = this.products.findIndex(c => (c._id || c.id) === productId);
+                    if (productIndex !== -1) {
+                        this.products[productIndex].availableInventory = originalInventory - this.cart[productId];
+                    }
+
+                    this.alertUser(`${product.subject} has been added to the cart!`, 'success');
+                },
+
+                // Alerts for various purposes
+                alertUser: function (message, type = 'success') {
+                    const alert = {
+                        message,
+                        type,
+                        id: Date.now(),
+                        icon: type === 'success' ? 'fas fa-check-circle' :
+                            type === 'warning' ? 'fas fa-exclamation-triangle' :
+                                'fas fa-times-circle'
+                    };
+
+                    this.alerts.push(alert);
+
+                    setTimeout(() => {
+                        const index = this.alerts.findIndex(a => a.id === alert.id);
+                        if (index !== -1) {
+                            this.alerts.splice(index, 1);
+                        }
+                    }, 3000);
+                },
+
+                // Remove cart items
+                removeFromCart: function (product) {
+                    const productId = product._id || product.id;
+                    if (this.cart[productId]) {
+                        // Decrease quantity or remove if last item
+                        if (this.cart[productId] > 1) {
+                            this.cart[productId]--;
+                        } else {
+                            this.$delete(this.cart, productId);
+                        }
+
+                        // Restore displayed inventory based on original inventory
+                        const productIndex = this.products.findIndex(c => (c._id || c.id) === productId);
+                        if (productIndex !== -1) {
+                            const remainingInCart = this.cart[productId] || 0;
+                            this.products[productIndex].availableInventory =
+                                this.originalInventory[productId] - remainingInCart;
+                        }
+                    }
+                },
+
+                // Shows cart and checkout
+                showCheckout() {
+                    if (Object.keys(this.cart).length === 0) {
+                        alert("Cart is empty! Please select a product to proceed.");
+                        return;
+                    }
+
+                    if (this.checkoutPage) {
+                        this.showProducts = true;
+                        this.checkoutPage = false;
+                    } else {
+                        this.showProducts = false;
+                        this.checkoutPage = true;
+                    }
+                },
+
+                // Show products
+                viewProducts: function () {
+                    this.showProducts = true;
+                    this.checkoutPage = false;
+                },
+
+                // Hide others and show landing page
+                toLandingPage: function () {
+                    this.showProducts = false;
+                    this.checkoutPage = false;
+                },
+
+                // Sort products based on different parameters
+                sortProducts: function () {
+                    this.products.sort((a, b) => {
+                        let comparison = 0;
+                        if (this.sortOption === "subject") {
+                            comparison = a.subject.localeCompare(b.subject);
+                        } else if (this.sortOption === "location") {
+                            comparison = a.location.localeCompare(
+                                b.location
+                            );
+                        } else if (this.sortOption === "fee") {
+                            comparison = a.fee - b.fee;
+                        } else if (this.sortOption === "spaces") {
+                            comparison =
+                                a.availableInventory - b.availableInventory;
+                        }
+                        return this.sortOrder === "asc"
+                            ? comparison
+                            : -comparison;
+                    });
+                },
+                isValidName: function (name) {
+                    // Checks if name contains only letters and spaces
+                    // Also ensures minimum 2 characters and allows for multiple names
+                    const nameRegex = /^[A-Za-z\s]{2,}$/;
+                    return nameRegex.test(name.trim());
+                },
+                isValidPhone: function (phone) {
+                    // Checks if phone contains only numbers
+                    // Allows for 7-15 digits to accommodate different phone number formats
+                    const phoneRegex = /^[0-9]{7,15}$/;
+                    return phoneRegex.test(phone.trim());
+                },
+
+                // Validate name for checkout
+                validateName: function () {
+                    this.formErrors.name = !this.isValidName(this.order.name) && this.order.name.length > 0;
+                },
+
+                // Validate phone for checkout
+                validatePhone: function () {
+                    this.formErrors.phone = !this.isValidPhone(this.order.phone) && this.order.phone.length > 0;
+                },
+
+                // Time set to prevent multiple searches
+                debounce: function (func, wait) {
+                    let timeout;
+                    return function executedFunction(...args) {
+                        const later = () => {
+                            clearTimeout(timeout);
+                            func(...args);
+                        };
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                    };
+                },
+
+                // Search products request sent from frontend
+                searchProducts: async function () {
+                    const query = this.searchQuery.trim();
+
+                    // If search query is empty, fetch all products
+                    if (query === "") {
+                        await this.fetchAllProducts();
+                        return;
+                    }
+
+                    try {
+                        // Make API call to backend search endpoint
+                        const response = await fetch(`http://localhost:5500/products/search?query=${encodeURIComponent(query)}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        // Parse the response
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            // Handle 404 and other errors
+                            if (response.status === 404) {
+                                this.searchResults = [];
+                                this.alertUser('No products found matching your search', 'warning');
+                            } else {
+                                throw new Error(data.message || 'Error performing search');
+                            }
+                            return;
+                        }
+
+                        // Update the search results
+                        this.searchResults = data;
+
+                        // If results were found, show success message
+                        if (data.length > 0) {
+                            this.alertUser(`Found ${data.length} product${data.length === 1 ? '' : 's'} matching your search`, 'success');
+                        }
+
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        this.alertUser('Error performing search. Please try again.', 'error');
+                        this.searchResults = [];
+                    }
+                },
+                // Used for search functionality
+                isSubstring: function (query, subject) {
+                    for (
+                        let i = 0;
+                        i <= subject.length - query.length;
+                        i++
+                    ) {
+                        let found = true;
+                        for (let j = 0; j < query.length; j++) {
+                            if (subject[i + j] !== query[j]) {
+                                found = false;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            return true;
+                        }
+                    }
+                    return false;
+                },
+                //Slideshow function
+                showSlides: function () {
+                    let slides = document.getElementsByClassName("mySlides");
+                    let dots = document.getElementsByClassName("dot");
+
+                    if (slides.length === 0 || dots.length === 0) {
+                        // Retry if elements aren't rendered yet
+                        setTimeout(this.showSlides, 100);
+                        return;
+                    }
+
+                    for (let i = 0; i < slides.length; i++) {
+                        slides[i].style.display = "none";
+                    }
+                    this.slideIndex++;
+                    if (this.slideIndex > slides.length) {
+                        this.slideIndex = 1;
+                    }
+                    for (let i = 0; i < dots.length; i++) {
+                        dots[i].className = dots[i].className.replace(" active", "");
+                    }
+                    slides[this.slideIndex - 1].style.display = "block";
+                    dots[this.slideIndex - 1].className += " active";
+                    setTimeout(this.showSlides, 3000); // Change slide every 3 seconds
+                }
+
+            },
+        });
+    </script>
+</body>
+
+</html>
