@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
             phone,
             cart: cart.map(item => ({
                 id: item.id,
-                subject: item.subject,
+                name: item.name,
                 fee: item.fee,
                 quantity: item.quantity,
                 subtotal: item.fee * item.quantity

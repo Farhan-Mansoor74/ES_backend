@@ -1,47 +1,55 @@
-// Main file
-//Importing modules required
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
+
+// Importing routers
 import productsRouter from './routes/getProducts.js';
 import ordersRouter from './routes/addOrder.js';
 import signUpRouter from './routes/signup.js';
 import loginRouter from './routes/login.js';
+import logoutRouter from './routes/logout.js';
+import adminRouter from './routes/adminBack.js';
+import storesRouter from './routes/stores.js'
 
-//import logger from './logger.js';
-
-import cors from 'cors';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const PORT = 5500;
 
-// Enabling Cross-origin resource sharing
+// Enabling Cross-Origin Resource Sharing (CORS)
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Middleware to log HTTP requests sent
-//app.use(logger);
-
-// Middleware to parse incoming JSON request bodies
+// Middleware to parse JSON request bodies
 app.use(express.json());
 
-// Serves static files from public directory
-app.use(express.static('public'));
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve index.html when visiting the root URL
+// Serve index.html at root
 app.get('/', (req, res) => {
-    res.sendFile(path.resolve('public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Mounting routers to specific routes
+// Serve admin.html at /admin
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Mounting routers
 app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
 app.use('/signup', signUpRouter);
 app.use('/login', loginRouter);
+app.use('/logout', logoutRouter);
+app.use('/admin/api', adminRouter);  // Changed this to avoid conflicts
+app.use('/stores', storesRouter);
 
-
-// Starts the server
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

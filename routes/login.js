@@ -1,26 +1,27 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import connectDB from '../mongodbConnection.js';
 
-const router = express.Router();
-const JWT_SECRET = "your_jwt_secret_key"; // Replace with a secure key
+dotenv.config();  // Load environment variables
 
-// User Login Route
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET; // Use secret from .env
+
 router.post('/', async (req, res) => {
     try {
         const { client, database } = await connectDB();
         const usersCollection = database.collection('Users');
 
-        const { email, password } = req.body;
+        const { name, password } = req.body;
 
-        // Validate input
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required." });
+        if (!name || !password) {
+            return res.status(400).json({ message: "Username and password are required." });
         }
 
-        // Find user by email
-        const user = await usersCollection.findOne({ email });
+        // Find user by username
+        const user = await usersCollection.findOne({ name });
         if (!user) {
             return res.status(401).json({ message: "Invalid credentials." });
         }
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
             { expiresIn: "1h" }
         );
 
-        res.status(200).json({ message: "Login successful!", token, role: user.role });
+        res.status(200).json({ message: "Login successful!", token, role: user.role , name:user.name});
 
         await client.close();
     } catch (error) {

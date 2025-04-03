@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>document.getElementsByTagName("html")[0].className += " js";</script>
+  <link rel="stylesheet" href="./css/style.css">
+  <title>Admin - EcoShopper</title>
+</head>
+
+<body>
+  <header class="cd-main-header js-cd-main-header">
+    <div class="cd-logo-wrapper">
+      <a href="#0" class="cd-logo"><img src="http://localhost:5500/images/cd-logo.svg" alt="Logo"></a>
+    </div>
+
+    <div class="cd-search js-cd-search">
+      <form>
+        <input class="reset" type="search" placeholder="Search...">
+      </form>
+    </div>
+
+    <button class="reset cd-nav-trigger js-cd-nav-trigger" aria-label="Toggle menu"><span></span></button>
+
+    <ul class="cd-nav__list js-cd-nav__list">
+      <li class="cd-nav__item cd-nav__item--has-children cd-nav__item--account js-cd-item--has-children">
+        <a href="#0">
+          <img src="http://localhost:5500/images/cd-avatar.svg" alt="avatar">
+          <span>Account</span>
+        </a>
+
+        <ul class="cd-nav__sub-list">
+          <li class="cd-nav__sub-item"><a href="#0">My Account</a></li>
+          <li class="cd-nav__sub-item"><a href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </li>
+    </ul>
+  </header> <!-- .cd-main-header -->
+
+  <main class="cd-main-content">
+    <nav class="cd-side-nav js-cd-side-nav">
+      <ul class="cd-side__list js-cd-side__list">
+        <li class="cd-side__label"><span>Management</span></li>
+        <li class="cd-side__item cd-side__item--has-children cd-side__item--overview js-cd-item--has-children">
+          <a href="#0">Stores</a>
+
+          <ul class="cd-side__sub-list">
+            <li class="cd-side__sub-item"><a href="#0">Add New Store</a></li>
+            <li class="cd-side__sub-item"><a href="#0">View/Edit Stores</a></li>
+          </ul>
+        </li>
+
+        <li
+          class="cd-side__item cd-side__item--has-children cd-side__item--notifications cd-side__item--selected js-cd-item--has-children">
+          <a href="#0">Notifications<span class="cd-count">3</span></a>
+
+          <ul class="cd-side__sub-list">
+            <li class="cd-side__sub-item"><a aria-current="page" href="#0">All Notifications</a></li>
+          </ul>
+        </li>
+
+        <li class="cd-side__item cd-side__item--has-children cd-side__item--comments js-cd-item--has-children">
+          <a href="#0">Deals</a>
+
+          <ul class="cd-side__sub-list">
+            <li class="cd-side__sub-item"><a href="#0">Add New Deal</a></li>
+            <li class="cd-side__sub-item"><a href="#0">View/Edit Deals</a></li>
+          </ul>
+        </li>
+
+        <li class="cd-side__item cd-side__item--has-children cd-side__item--comments js-cd-item--has-children">
+          <a href="#0">Users</a>
+
+          <ul class="cd-side__sub-list">
+            <li class="cd-side__sub-item"><a href="#0">Add New User</a></li>
+            <li class="cd-side__sub-item"><a href="#0">Manage Admins</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <ul class="cd-side__list js-cd-side__list">
+        <li class="cd-side__label"><span>Action</span></li>
+        <li class="cd-side__btn"><button class="reset" href="#0">+ Button</button></li>
+      </ul>
+    </nav>
+
+    <div class="cd-content-wrapper">
+      <div class="text-component text-center">
+        <h1>Responsive Sidebar Navigation</h1>
+        <p>👈<a href="https://codyhouse.co/gem/responsive-sidebar-navigation">Article &amp; Download</a></p>
+      </div>
+    </div> <!-- .content-wrapper -->
+  </main> <!-- .cd-main-content -->
+  
+  <script src="./js/util.js"></script> <!-- util functions included in the CodyHouse framework -->
+  <script src="./js/menu-aim.js"></script>
+  <script src="./js/main.js"></script>
+  <script>
+    // Logout method
+    async function logout() {
+      try {
+        const response = await fetch('http://localhost:5500/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          // Clear local storage
+          localStorage.removeItem('user');
+
+          // Show logout alert
+          alert('Logged out successfully'); // Simple alternative
+
+          // Reload the page
+          window.location.reload();
+          window.location.href = "/";
+        } else {
+          throw new Error('Logout failed');
+        }
+      } catch (error) {
+        console.error('Logout error:', error);
+        alert('Logout failed. Please try again.'); // Handle errors properly
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -5,19 +5,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EcoShopper</title>
+
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="css/styles.css" />
+
+    <!-- Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
 </head>
 
 <body>
     <div id="app">
         <!-- Navbar -->
-        <header class="topnav">
+        <header class="topnav" v-if="!isLoginPage">
             <!-- Logo -->
             <a href="#">
-                <img src="http://localhost:5500/images/LevelUplogo.png" id="logo" alt="Logo"
-                    @click="toLandingPage" />
+                <img src="http://localhost:5500/images/LevelUplogo.png" id="logo" alt="Logo" @click="toLandingPage" />
             </a>
 
             <!-- Search Container -->
@@ -31,6 +35,16 @@
                 </form>
             </div>
 
+            <!-- Light/Dark Mode Toggle -->
+            <button @click="toggleTheme" class="theme-toggle" :class="{ 'dark-mode': isDarkMode }">
+                <i class="fas" :class="isDarkMode ? 'fa-moon' : 'fa-sun'"></i>
+            </button>
+
+            <!-- Login Button -->
+            <!-- Show either Login or Logout button based on authentication status -->
+            <button v-if="!isAuthenticated" @click="goToLogin" class="login-button">Login</button>
+            <button v-else @click="logout" class="login-button">Logout</button>
+
             <!-- Cart Button -->
             <button @click="showCheckout" class="cart-button" :class="{ 'on-checkout': checkoutPage }"
                 :data-tooltip="checkoutPage ? 'Back to Shopping' : 'View Cart'">
@@ -38,6 +52,87 @@
                 <sup>{{ cartItemCount }}</sup>
             </button>
         </header>
+
+        <!-- Login And Sign Up forms -->
+        <div class="container" v-if="isLoginPage">
+            <input type="checkbox" id="flip">
+            <div class="cover">
+                <div class="front">
+                    <img src="http://localhost:5500/images/frontImg.jpg" alt="">
+                    <div class="text">
+                        <span class="text-1">Every new friend is a <br> new adventure</span>
+                        <span class="text-2">Let's get connected</span>
+                    </div>
+                </div>
+                <div class="back">
+                    <img class="backImg" src="http://localhost:5500/images/backImg.jpg" alt="">
+                    <div class="text">
+                        <span class="text-1">Complete miles of journey <br> with one step</span>
+                        <span class="text-2">Let's get started</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="forms">
+                <div class="form-content">
+                    <!-- Login Form -->
+                    <div class="login-form">
+                        <div class="title">Login</div>
+                        <form @submit.prevent="login">
+                            <div class="input-boxes">
+                                <div class="input-box">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" placeholder="Enter your username" required>
+                                </div>
+                                <div class="input-box">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" placeholder="Enter your password" required>
+                                </div>
+                                <div class="text" style="position:relative"><a href="#">Forgot password?</a></div>
+                                <div class="button input-box">
+                                    <input type="submit" value="Login">
+                                </div>
+                                <div class="text sign-up-text">Don't have an account? <label for="flip">Signup
+                                        now</label></div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div class="signup-form">
+                        <div class="title">Signup</div>
+                        <form @submit.prevent="signup">
+                            <div class="input-boxes">
+                                <div class="input-box">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" placeholder="Enter your username" required>
+                                </div>
+                                <div class="input-box">
+                                    <i class="fas fa-user"></i>
+                                    <input type="email" placeholder="Enter your email" required>
+                                </div>
+                                <div class="input-box">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" placeholder="Enter your password" required>
+                                </div>
+                                <div class="input-box">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" placeholder="Confirm your password" required>
+                                </div>
+                                <div class="button input-box">
+                                    <input type="submit" value="Signup">
+                                </div>
+                                <div class="text sign-up-text">Already have an account? <label for="flip">Login
+                                        now</label></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="isLoginPage">
+            <button @click="toLandingPage" id="backHome"> Back to Home</button>
+        </div>
 
         <!-- Custom Alert -->
         <div id="alert-container">
@@ -48,7 +143,7 @@
         </div>
 
         <!-- Landing Page Section -->
-        <main class="landing" v-if="!showProducts && !checkoutPage &&!showReceipt">
+        <main class="landing" v-if="!showProducts && !checkoutPage && !showReceipt && !isLoginPage && !showMap">
             <div class="landing-section">
                 <div class="text-content">
                     <h2>Welcome to {{ sitename }}</h2>
@@ -57,7 +152,7 @@
                         EcoShopper helps you save money while reducing paper waste
                         by bringing live shopping updates straight to your device.
                     </p>
-                    <button class="view-products-btn" @click="viewProducts">
+                    <button class="view-products-btn" @click="showNearbyStores">
                         View latest deals around you!
                     </button>
                 </div>
@@ -101,14 +196,71 @@
             </div>
         </main>
 
+        <main v-if="showMap" class="map-container">
+            <div class="map-header">
+                <h2>Stores Near You</h2>
+                <div class="map-actions">
+                    <button @click="centerUserLocation" class="location-btn" title="Center on my location">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                    <button @click="viewProducts" class="view-all-btn">
+                        View All Products
+                    </button>
+                    <button @click="toLandingPage" class="back-btn">
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+            <div id="storeMap"></div>
+
+            <!-- Store Info Sidebar -->
+            <div class="store-sidebar" v-if="selectedStore">
+                <div class="store-header">
+                    <h3>{{ selectedStore.name }}</h3>
+                    <button @click="closeStoreSidebar" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="store-info">
+                    <p><i class="fas fa-map-marker-alt"></i> {{ selectedStore.address || 'Address not available' }}</p>
+                    <p><i class="fas fa-phone"></i> {{ selectedStore.phone || 'Phone not available' }}</p>
+                    <p><i class="fas fa-clock"></i> {{ selectedStore.hours || 'Hours not available' }}</p>
+                    <div class="store-distance" v-if="selectedStore.distance">
+                        <i class="fas fa-route"></i> {{ (selectedStore.distance / 1000).toFixed(2) }} km away
+                    </div>
+                </div>
+                <div class="store-products">
+                    <h4>Available Products</h4>
+                    <div v-if="storeProducts.length > 0" class="store-product-list">
+                        <div v-for="product in storeProducts" :key="product.id" class="store-product-item">
+                            <img :src="product.image" alt="Product Image" class="product-thumbnail">
+                            <div class="product-info">
+                                <div class="product-name">{{ product.name }}</div>
+                                <div class="product-price">{{ product.price }} AED</div>
+                            </div>
+                            <button @click="addToCart(product)" :disabled="product.availableInventory <= 0"
+                                class="add-btn">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div v-else class="no-products">
+                        No products available at this store.
+                    </div>
+                </div>
+                <button @click="viewStoreProducts(selectedStore)" class="view-store-products-btn">
+                    View All Products at This Store
+                </button>
+            </div>
+        </main>
+
         <!-- Display products and Sort dropdowns -->
         <main v-if="showProducts && !checkoutPage">
             <div class="sort-section">
                 <label for="sort">Sort by:</label>
                 <select v-model="sortOption" @change="sortProducts">
-                    <option value="subject">Subject</option>
-                    <option value="location">Location</option>
-                    <option value="fee">Price</option>
+                    <option value="name">Name</option>
+                    <option value="price">Price</option>
                     <option value="spaces">Availability</option>
                 </select>
                 <label for="order">Order:</label>
@@ -117,27 +269,33 @@
                     <option value="desc">Descending</option>
                 </select>
             </div>
-
             <div class="all-products">
                 <div v-for="product in searchResults" :key="product.id" class="product-card">
-                    <span class="availability-tag">{{ product.availableInventory }} available</span>
-
-                    <img :src="getImagePath(product.image)" alt="product Image" />
-                    <div class="product-title-wrap">
-                        <h2 v-text="product.subject"></h2>
-                        <p style="font-weight: bold">
-                            {{ product.fee }} AED
-                        </p>
+                    <div class="product-category" v-if="product.category">{{ product.category }}</div>
+                    <div class="product-image-container">
+                        <img :src="product.image" alt="Product Image" class="product-image">
                     </div>
-                    <h6 class="location">Location: {{ product.location }}</h6>
-
-                    <div>
-                        <span v-for="n in product.rating"> ★ </span>
-                        <span v-for="n in 5 - product.rating"> ☆ </span>
+                    <div class="product-details">
+                        <h2 class="product-title">{{ product.name }}</h2>
+                        <div class="product-rating" v-if="product.rating">
+                            <span v-for="i in 5" :key="i" class="star"
+                                :class="{'empty': i > Math.floor(product.rating)}">★</span>
+                            <span class="rating-value">({{ product.rating }})</span>
+                        </div>
+                        <div class="product-price-section">
+                            <span class="product-price">{{ product.price }} AED</span>
+                            <span class="product-availability"
+                                :class="{'out-of-stock': product.availableInventory <= 0}">
+                                {{ product.availableInventory > 0 ? 'In Stock' : 'Out of Stock' }}
+                            </span>
+                        </div>
+                        <div class="product-actions">
+                            <button @click="addToCart(product)" :disabled="product.availableInventory <= 0"
+                                class="add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
                     </div>
-                    <button @click="addToCart(product)" :disabled="product.availableInventory <= 0" class="addProduct">
-                        Add to Cart
-                    </button>
                 </div>
             </div>
         </main>
@@ -169,10 +327,10 @@
                 <div class="checkout-right">
                     <h2>Your Cart ({{ cartItemCount }} items)</h2>
                     <div v-for="product in cartDetails" :key="product.id" class="checkout-product">
-                        <img :src="getImagePath(product.image)" alt="Product Image" class="cart-image" />
+                        <img :src="product.image" alt="Product Image" class="cart-image" />
                         <div class="product-info">
-                            <span class="product-name">{{ product.subject }}</span>
-                            <span class="product-price">{{ product.fee }} AED per hour</span>
+                            <span class="product-name">{{ product.name }}</span>
+                            <span class="product-price">{{ product.price }} AED </span>
                             <div class="quantity-controls">
                                 <span class="quantity-label">Quantity:</span>
                                 <button @click="removeFromCart(product)" class="quantity-btn"
@@ -186,11 +344,12 @@
                                     +
                                 </button>
                                 <span class="spaces-available">
-                                    ({{ originalInventory[product._id || product.id] - cart[product._id || product.id] || 0 }}
-                                    spaces available)
+                                    ({{ originalInventory[product._id || product.id] - cart[product._id || product.id]
+                                    || 0 }}
+                                    more available)
                                 </span>
                             </div>
-                            <span class="subtotal">Subtotal: {{ product.quantity * product.fee }} AED</span>
+                            <span class="subtotal">Subtotal: {{ product.quantity * product.price }} AED</span>
                         </div>
                         <button @click="removeFromCart(product)" class="remove-btn">
                             Remove All
@@ -226,8 +385,7 @@
         <main v-if="showReceipt" class="receipt-container">
             <div class="receipt">
                 <div class="receipt-header">
-                    <img src="http://localhost:5500/images/LevelUplogo.png" alt="Logo"
-                        class="receipt-logo" />
+                    <img src="http://localhost:5500/images/LevelUplogo.png" alt="Logo" class="receipt-logo" />
                     <h2>Order Confirmation</h2>
                     <p class="receipt-date">{{ getCurrentDate() }}</p>
                 </div>
@@ -252,9 +410,9 @@
                         </thead>
                         <tbody>
                             <tr v-for="product in orderDetails.products" :key="product.id">
-                                <td>{{ product.subject }}</td>
+                                <td>{{ product.name }}</td>
                                 <td>{{ product.location }}</td>
-                                <td>{{ product.fee }} AED</td>
+                                <td>{{ product.price }} AED</td>
                                 <td>{{ product.quantity }}</td>
                                 <td>{{ product.subtotal }}</td>
                             </tr>
@@ -290,6 +448,11 @@
                 showProducts: false,
                 checkoutPage: false,
                 showReceipt: false,
+                isDarkMode: false,
+                isAuthenticated: false,
+                currentUser: null,
+                isLoginPage: false,
+                showMap: false,
                 orderDetails: {
                     name: '',
                     phone: '',
@@ -300,7 +463,7 @@
                 cart: {},
                 originalInventory: {}, // Track original inventory levels
                 searchQuery: "",
-                sortOption: "subject", // Default sorting option
+                sortOption: "name", // Default sorting option
                 sortOrder: "asc", // Default sort order
                 alerts: [],
                 order: {
@@ -314,18 +477,35 @@
                     phone: false
                 },
                 debouncedSearch: null,
-                isLoading: false
+                isLoading: false,
+                stores: [], // Array to store fetched stores
+                map: null, // Will hold the Leaflet map instance
+                userLocation: null, // Will store user's coordinates
+                userMarker: null, // Marker for user's location
+                storeMarkers: [], // Array to store map markers
+                selectedStore: null, // Currently selected store
+                storeProducts: [], // Products at selected store
+                activeStoreFilter: null, // For filtering products by store
             },
             mounted() {
-                this.fetchAllProducts();
+                this.Products = [],
+                    this.searchResults = [],
+                    this.fetchAllProducts();
+                this.checkUserAuth();
                 this.$nextTick(() => {
                     this.showSlides();
                     this.searchResults = this.products; // Populate searchResults with all products initially
                 });
 
                 this.debouncedSearch = this.debounce(this.searchProducts, 300);
+
+                // Fetch stores when app is mounted
+                this.fetchStores();
             },
             computed: {
+                isLoggedIn() {
+                    return localStorage.getItem('user') !== null;
+                },
                 cartItemCount: function () {
                     return Object.values(this.cart).reduce((total, quantity) => total + quantity, 0);
                 },
@@ -337,7 +517,7 @@
                             details.push({
                                 ...product,
                                 quantity: quantity,
-                                subtotal: product.fee * quantity,
+                                subtotal: product.price * quantity,
                                 maxAvailable: this.originalInventory[productId] || product.availableInventory // Use original inventory for max
                             });
                         }
@@ -346,7 +526,7 @@
                 },
                 cartTotal() {
                     return this.cartDetails.reduce(
-                        (total, item) => total + (item.fee * item.quantity),
+                        (total, item) => total + (item.price * item.quantity),
                         0
                     );
                 },
@@ -355,32 +535,247 @@
                 },
             },
             methods: {
-                // Fetches all products details
-                fetchAllProducts: async function () {
-                    console.log('FETCHING PRODUCTS');
+                goToLogin() {
+                    this.isLoginPage = true;
+                    this.showProducts = false;
+                    this.checkoutPage = false;
+                    this.showReceipt = false;
+                    this.LandingPage = false;
+                },
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    document.body.classList.toggle("dark-mode", this.isDarkMode);
+                },
+                checkUserAuth: function () {
+                    // First check localStorage
+                    const storedUser = localStorage.getItem('user');
+                    if (storedUser) {
+                        try {
+                            this.currentUser = JSON.parse(storedUser);
+                            this.isAuthenticated = true;
+                        } catch (e) {
+                            console.error('Error parsing stored user', e);
+                            localStorage.removeItem('user');
+                        }
+                    }
+
+                    // Then verify with server
+                    this.checkAuthStatus().then(isAuthenticated => {
+                        this.isAuthenticated = isAuthenticated;
+                        if (!isAuthenticated) {
+                            // Clear any invalid stored data
+                            localStorage.removeItem('user');
+                            this.currentUser = null;
+                        }
+                    });
+                },
+                login: async function () {
+                    const name = document.querySelector('.login-form input[type="text"]').value;
+                    const password = document.querySelector('.login-form input[type="password"]').value;
+
+                    if (!name || !password) {
+                        this.alertUser('Please enter both username and password', 'warning');
+                        return;
+                    }
+
                     try {
-                        const response = await fetch('http://localhost:5500/products', {
-                            method: 'GET',
+                        const response = await fetch('http://localhost:5500/login', {
+                            method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
+                            body: JSON.stringify({ name, password })
                         });
+
+                        const data = await response.json();
+                        console.log("Login response:", data);
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Login failed');
+                        }
+
+                        this.alertUser('Login successful!', 'success');
+
+                        // Store user info
+                        localStorage.setItem('user', JSON.stringify({
+                            name: data.name,
+                            role: data.role,
+                            token: data.token
+                        }));
+                        this.checkLoginStatus();
+                        console.log("Local storage updated");
+
+                        if (data.role === 'admin') {
+                            console.log('Redirecting to admin page...');
+                            window.location.href = "/admin";  // Redirect to admin page
+                        } else {
+                            // Navigate back to main page
+                            this.isLoginPage = false;
+                            this.showProducts = true;
+
+                            console.log("Navigation done, fetching products...");
+                            if (this.showProducts) {
+                                this.fetchAllProducts();
+                            }
+                            window.location.reload();
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        this.alertUser(error.message || 'Login failed. Please check your credentials.', 'error');
+                    }
+                },
+
+                signup: async function () {
+                    const username = document.querySelector('.signup-form input[type="text"]').value;
+                    const email = document.querySelector('.signup-form input[type="email"]').value;
+                    const password = document.querySelector('.signup-form input[type="password"]').value;
+                    const confirmPassword = document.querySelectorAll('.signup-form input[type="password"]')[1].value; // Select confirm password field
+
+                    if (!username || !email || !password || !confirmPassword) {
+                        this.alertUser('All fields are required.', 'warning');
+                        return;
+                    }
+
+                    if (username.length < 3) {
+                        this.alertUser('Username must be at least 3 characters long.', 'warning');
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        this.alertUser('Password must be at least 6 characters long.', 'warning');
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        this.alertUser('Passwords do not match.', 'error');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('http://localhost:5500/signup', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                name: username,
+                                email: email,
+                                password: password,
+                                role: "customer" // Default role
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Signup failed.');
+                        }
+
+                        this.alertUser('Account created successfully! You can now login.', 'success');
+
+                        // Reset form fields
+                        document.querySelector('.signup-form input[type="text"]').value = '';
+                        document.querySelector('.signup-form input[type="email"]').value = '';
+                        document.querySelectorAll('.signup-form input[type="password"]').forEach(input => input.value = '');
+
+                        // Flip back to login form
+                        document.getElementById('flip').checked = false;
+
+                    } catch (error) {
+                        console.error('Signup error:', error);
+                        this.alertUser(error.message || 'Signup failed. Please try again.', 'error');
+                    }
+                },
+                checkAuthStatus: async function () {
+                    try {
+                        // First check if we have stored user info and use that
+                        const storedUser = localStorage.getItem('user');
+                        if (storedUser) {
+                            try {
+                                const userData = JSON.parse(storedUser);
+                                this.currentUser = userData;
+                                return true; // Consider user authenticated based on local storage
+                            } catch (e) {
+                                console.error('Error parsing stored user', e);
+                                localStorage.removeItem('user');
+                            }
+                        }
+
+                        // Only try server authentication if endpoint is working
+                        /* Commenting out for now since endpoint returns 404
+                        const response = await fetch('http://localhost:5500/auth-status', {
+                            method: 'GET',
+                            credentials: 'include'
+                        });
+                
+                        if (response.ok) {
+                            const data = await response.json();
+                            return data.authenticated;
+                        }
+                        */
+
+                        return false;
+                    } catch (error) {
+                        console.error('Auth check error:', error);
+                        return false;
+                    }
+                },
+                // Logout method
+                logout: async function () {
+                    try {
+                        const response = await fetch('http://localhost:5500/logout', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+
+                        if (response.ok) {
+                            // Clear local storage
+                            localStorage.removeItem('user');
+
+                            // Update UI state (assuming you have a variable tracking login status)
+                            this.isLoggedIn = false; // Ensure your template reacts to this change
+                            this.checkLoginStatus();
+                            this.alertUser('Logged out successfully', 'success');
+                            window.location.reload();
+                            // Redirect to home
+                            this.toLandingPage();
+                        } else {
+                            throw new Error('Logout failed');
+                        }
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        this.alertUser('Logout failed. Please try again.', 'error');
+                    }
+                },
+
+                // In your Vue methods
+                fetchAllProducts: async function () {
+                    console.log('FETCHING PRODUCTS');
+                    try {
+                        const response = await fetch('http://localhost:5500/products');
                         if (!response.ok) {
                             throw new Error('Failed to fetch products');
                         }
                         const data = await response.json();
-                        console.log(data);
-                        this.products = data;
-                        this.searchResults = data;
+                        // Ensure data is an array before assigning
+                        if (Array.isArray(data)) {
+                            this.products = data;
+                            this.searchResults = data;
 
-                        // Store original inventory levels
-                        data.forEach(product => {
-                            const productId = product._id || product.id;
-                            this.originalInventory[productId] = product.availableInventory;
-                        });
+                            // Store original inventory levels
+                            data.forEach(product => {
+                                const productId = product._id || product.id;
+                                this.originalInventory[productId] = product.availableInventory;
+                            });
+                        } else {
+                            throw new Error('Products data is not in expected format');
+                        }
                     } catch (error) {
                         console.error(error);
-                        alert('Error fetching products. Please try again later.');
+                        this.alertUser('Error fetching products. Please try again later.', 'error');
+                        // Initialize with empty arrays to prevent rendering errors
+                        this.products = [];
+                        this.searchResults = [];
                     }
                 },
 
@@ -419,8 +814,8 @@
                             phone: this.order.phone,
                             cart: this.cartDetails.map(product => ({
                                 id: product._id || product.id,
-                                subject: product.subject,
-                                fee: product.fee,
+                                name: product.name,
+                                price: product.price,
                                 quantity: product.quantity
                             })),
                             total: this.cartTotal,
@@ -500,7 +895,7 @@
 
                             // Handle specific error cases
                             if (response.status === 400) {
-                                this.alertUser(`Not enough spaces available. Only ${errorData.availableInventory} spaces left.`, 'error');
+                                this.alertUser(`Not enough stock available. Only ${errorData.availableInventory} more left.`, 'error');
                             } else if (response.status === 404) {
                                 this.alertUser('product not found.', 'error');
                             } else {
@@ -522,14 +917,14 @@
 
                 // Add items to cart
                 addToCart: function (product) {
-                    console.log('Adding to cart:', product._id || product.id, product.subject);
+                    console.log('Adding to cart:', product._id || product.id, product.name);
 
                     const productId = product._id || product.id;
                     const originalInventory = this.originalInventory[productId];
 
                     // Check against original inventory
                     if (this.cart[productId] && this.cart[productId] >= originalInventory) {
-                        this.alertUser(`Maximum available spaces (${originalInventory}) reached for ${product.subject}!`, 'warning');
+                        this.alertUser(`Maximum available stock (${originalInventory}) reached for ${product.name}!`, 'warning');
                         return;
                     }
 
@@ -546,7 +941,7 @@
                         this.products[productIndex].availableInventory = originalInventory - this.cart[productId];
                     }
 
-                    this.alertUser(`${product.subject} has been added to the cart!`, 'success');
+                    this.alertUser(`${product.name} has been added to the cart!`, 'success');
                 },
 
                 // Alerts for various purposes
@@ -574,12 +969,13 @@
                 removeFromCart: function (product) {
                     const productId = product._id || product.id;
                     if (this.cart[productId]) {
+                        this.$delete(this.cart, productId);
                         // Decrease quantity or remove if last item
-                        if (this.cart[productId] > 1) {
-                            this.cart[productId]--;
-                        } else {
-                            this.$delete(this.cart, productId);
-                        }
+                        // if (this.cart[productId] > 1) {
+                        //     this.cart[productId]--;
+                        // } else {
+                        //     this.$delete(this.cart, productId);
+                        // }
 
                         // Restore displayed inventory based on original inventory
                         const productIndex = this.products.findIndex(c => (c._id || c.id) === productId);
@@ -604,33 +1000,47 @@
                     } else {
                         this.showProducts = false;
                         this.checkoutPage = true;
+                        this.showMap = false;
                     }
                 },
 
-                // Show products
                 viewProducts: function () {
-                    this.showProducts = true;
-                    this.checkoutPage = false;
+
+                    if (this.isLoggedIn) {
+                        this.showProducts = true;
+                        this.showMap = false;
+                        this.checkoutPage = false;
+
+                        // Clear store filter when viewing all products
+                        this.activeStoreFilter = null;
+                        this.searchQuery = "";
+                        this.fetchAllProducts();
+                    } else {
+                        this.goToLogin();
+                        this.showMap = false;
+                    }
                 },
 
-                // Hide others and show landing page
+                checkLoginStatus() {
+                    this.$forceUpdate();  // Force Vue to refresh computed properties
+                },
+
                 toLandingPage: function () {
                     this.showProducts = false;
+                    this.isLoginPage = false;
                     this.checkoutPage = false;
+                    this.showMap = false;
                 },
 
                 // Sort products based on different parameters
                 sortProducts: function () {
                     this.products.sort((a, b) => {
                         let comparison = 0;
-                        if (this.sortOption === "subject") {
-                            comparison = a.subject.localeCompare(b.subject);
-                        } else if (this.sortOption === "location") {
-                            comparison = a.location.localeCompare(
-                                b.location
-                            );
-                        } else if (this.sortOption === "fee") {
-                            comparison = a.fee - b.fee;
+                        if (this.sortOption === "name") {
+                            comparison = a.name.localeCompare(b.name);
+                        }
+                        else if (this.sortOption === "price") {
+                            comparison = a.price - b.price;
                         } else if (this.sortOption === "spaces") {
                             comparison =
                                 a.availableInventory - b.availableInventory;
@@ -676,17 +1086,17 @@
                     };
                 },
 
-                // Search products request sent from frontend
+                // // Search products request sent from frontend
                 searchProducts: async function () {
                     const query = this.searchQuery.trim();
 
-                    // If search query is empty, fetch all products
-                    if (query === "") {
-                        await this.fetchAllProducts();
-                        return;
-                    }
-
                     try {
+                        // If search query is empty, fetch all products
+                        if (query === "") {
+                            await this.fetchAllProducts();
+                            return;
+                        }
+
                         // Make API call to backend search endpoint
                         const response = await fetch(`http://localhost:5500/products/search?query=${encodeURIComponent(query)}`, {
                             method: 'GET',
@@ -697,6 +1107,13 @@
 
                         // Parse the response
                         const data = await response.json();
+
+                        // Validate data is an array
+                        if (!Array.isArray(data)) {
+                            console.error('Expected search results array but got:', data);
+                            this.searchResults = [];
+                            return;
+                        }
 
                         if (!response.ok) {
                             // Handle 404 and other errors
@@ -724,15 +1141,15 @@
                     }
                 },
                 // Used for search functionality
-                isSubstring: function (query, subject) {
+                isSubstring: function (query, name) {
                     for (
                         let i = 0;
-                        i <= subject.length - query.length;
+                        i <= name.length - query.length;
                         i++
                     ) {
                         let found = true;
                         for (let j = 0; j < query.length; j++) {
-                            if (subject[i + j] !== query[j]) {
+                            if (name[i + j] !== query[j]) {
                                 found = false;
                                 break;
                             }
@@ -767,11 +1184,356 @@
                     slides[this.slideIndex - 1].style.display = "block";
                     dots[this.slideIndex - 1].className += " active";
                     setTimeout(this.showSlides, 3000); // Change slide every 3 seconds
-                }
+                },
+                showNearbyStores: function () {
+                    this.showMap = true;
+                    this.showProducts = false;
+                    this.checkoutPage = false;
+                    this.showReceipt = false;
+                    this.isLoginPage = false;
 
+                    // Initialize map after the element is rendered
+                    this.$nextTick(() => {
+                        this.initMap();
+                    });
+                },
+
+                fetchStores: async function () {
+                    try {
+                        const response = await fetch('http://localhost:5500/stores');
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch stores');
+                        }
+
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            this.stores = data;
+                        } else {
+                            throw new Error('Stores data is not in expected format');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching stores:', error);
+                        this.alertUser('Error fetching nearby stores. Please try again later.', 'error');
+                        this.stores = [];
+                    }
+                },
+
+                initMap: function () {
+                    // Create map if map container exists
+                    const mapContainer = document.getElementById('storeMap');
+                    if (!mapContainer) return;
+
+                    // Initialize map
+                    this.map = L.map('storeMap').setView([25.276987, 55.296249], 13); // Default to Dubai
+
+                    // Add OpenStreetMap tiles
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(this.map);
+
+                    // Get user location
+                    this.getUserLocation();
+
+                    // Add store markers
+                    this.addStoreMarkers();
+                },
+
+                getUserLocation: function () {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                // Store user location
+                                this.userLocation = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude
+                                };
+
+                                // Center map on user location
+                                this.map.setView([this.userLocation.lat, this.userLocation.lng], 13);
+
+                                // Add user marker
+                                if (this.userMarker) {
+                                    this.userMarker.setLatLng([this.userLocation.lat, this.userLocation.lng]);
+                                } else {
+                                    // Create user location marker with custom icon
+                                    const userIcon = L.divIcon({
+                                        html: '<i class="fas fa-user-circle" style="font-size: 24px; color: #3388ff;"></i>',
+                                        className: 'user-marker',
+                                        iconSize: [24, 24],
+                                        iconAnchor: [12, 12]
+                                    });
+
+                                    this.userMarker = L.marker([this.userLocation.lat, this.userLocation.lng], {
+                                        icon: userIcon
+                                    }).addTo(this.map);
+
+                                    this.userMarker.bindPopup('You are here').openPopup();
+                                }
+
+                                // Calculate distances from user to stores
+                                this.calculateStoreDistances();
+                            },
+                            (error) => {
+                                console.error('Error getting location:', error);
+                                this.alertUser('Could not access your location. Using default map view.', 'warning');
+                            }
+                        );
+                    } else {
+                        this.alertUser('Geolocation is not supported by your browser.', 'warning');
+                    }
+                },
+
+                calculateStoreDistances: function () {
+                    if (!this.userLocation) return;
+
+                    // Calculate distance from user to each store
+                    this.stores.forEach(store => {
+                        if (store.location && store.location.latitude && store.location.longitude) {
+                            // Calculate distance using Haversine formula
+                            store.distance = this.getDistance(
+                                this.userLocation.lat,
+                                this.userLocation.lng,
+                                store.location.latitude,
+                                store.location.longitude
+                            );
+                        }
+                    });
+
+                    // Sort stores by distance
+                    this.stores.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+
+                    // Refresh markers to update popups with distance info
+                    this.refreshStoreMarkers();
+                },
+
+                getDistance: function (lat1, lon1, lat2, lon2) {
+                    // Haversine formula to calculate distance between two points
+                    const R = 6371e3; // Earth radius in meters
+                    const φ1 = lat1 * Math.PI / 180;
+                    const φ2 = lat2 * Math.PI / 180;
+                    const Δφ = (lat2 - lat1) * Math.PI / 180;
+                    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+                    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                        Math.cos(φ1) * Math.cos(φ2) *
+                        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                    return R * c; // Distance in meters
+                },
+
+                addStoreMarkers: function () {
+                    if (!this.map) return;
+
+                    // Clear existing markers
+                    this.clearStoreMarkers();
+
+                    // Add markers for each store
+                    this.stores.forEach(store => {
+                        if (store.location && store.location.latitude && store.location.longitude) {
+                            const marker = L.marker([store.location.latitude, store.location.longitude])
+                                .addTo(this.map);
+
+                            // Create popup content
+                            let popupContent = `
+                                <div class="store-popup">
+                                    <h3>${store.name}</h3>
+                                    <p>${store.address || ''}</p>
+                            `;
+
+                            if (store.distance) {
+                                popupContent += `<p>${(store.distance / 1000).toFixed(2)} km away</p>`;
+                            }
+
+                            popupContent += `
+                                    <button class="view-store-btn">View Store</button>
+                                </div>
+                            `;
+
+                            const popup = L.popup().setContent(popupContent);
+                            marker.bindPopup(popup);
+
+                            // Add click event to marker
+                            marker.on('click', () => {
+                                this.selectStore(store);
+                            });
+
+                            // Also add click event to the View Store button in popup
+                            marker.on('popupopen', () => {
+                                const viewStoreBtn = document.querySelector('.view-store-btn');
+                                if (viewStoreBtn) {
+                                    viewStoreBtn.addEventListener('click', () => {
+                                        this.selectStore(store);
+                                    });
+                                }
+                            });
+
+                            // Store the marker reference
+                            this.storeMarkers.push({
+                                storeId: store._id || store.id,
+                                marker: marker
+                            });
+                        }
+                    });
+                },
+
+                clearStoreMarkers: function () {
+                    // Remove all existing markers from map
+                    this.storeMarkers.forEach(markerData => {
+                        this.map.removeLayer(markerData.marker);
+                    });
+                    this.storeMarkers = [];
+                },
+
+                refreshStoreMarkers: function () {
+                    // Refresh all markers to update popups
+                    this.clearStoreMarkers();
+                    this.addStoreMarkers();
+                },
+
+                centerUserLocation: function () {
+                    if (this.userLocation && this.map) {
+                        this.map.setView([this.userLocation.lat, this.userLocation.lng], 13);
+                    } else {
+                        this.getUserLocation();
+                    }
+                },
+
+                selectStore: function (store) {
+                    this.selectedStore = store;
+
+                    // Fetch products for this store
+                    this.fetchProductsByStore(store._id || store.id);
+
+                    // Highlight the selected store marker
+                    this.highlightStoreMarker(store._id || store.id);
+                },
+
+                highlightStoreMarker: function (storeId) {
+                    // Reset all markers to default style
+                    this.storeMarkers.forEach(markerData => {
+                        markerData.marker.setIcon(L.icon({
+                            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-icon.png',
+                            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-icon-2x.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        }));
+                    });
+
+                    // Set selected marker to highlighted style
+                    const selectedMarker = this.storeMarkers.find(m => m.storeId === storeId);
+                    if (selectedMarker) {
+                        // You could use a custom icon for the selected store if needed
+                        // For now, just open its popup
+                        selectedMarker.marker.openPopup();
+                    }
+                },
+
+                closeStoreSidebar: function () {
+                    this.selectedStore = null;
+                    this.storeProducts = [];
+                },
+
+                fetchProductsByStore: async function (storeId) {
+                    try {
+                        const response = await fetch(`http://localhost:5500/products/store/${storeId}`);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch store products');
+                        }
+
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            this.storeProducts = data;
+                        } else {
+                            throw new Error('Products data is not in expected format');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching store products:', error);
+                        this.alertUser('Error fetching products for this store.', 'error');
+                        this.storeProducts = [];
+                    }
+                },
+
+                viewStoreProducts: function (store) {
+                    // Set filter and go to products page
+                    this.activeStoreFilter = store._id || store.id;
+                    this.searchProducts(); // This will filter products based on activeStoreFilter
+                    this.showMap = false;
+                    this.showProducts = true;
+                },
+
+                // // Modify the existing searchProducts method to handle store filtering
+                // searchProducts: async function () {
+                //     const query = this.searchQuery.trim();
+
+                //     try {
+                //         let url = 'http://localhost:5500/products';
+
+                //         // Add search query parameter if provided
+                //         if (query !== "") {
+                //             url = `http://localhost:5500/products/search?query=${encodeURIComponent(query)}`;
+                //         }
+
+                //         // Add store filter if active
+                //         if (this.activeStoreFilter) {
+                //             url += (url.includes('?') ? '&' : '?') + `storeId=${this.activeStoreFilter}`;
+                //         }
+
+                //         const response = await fetch(url, {
+                //             method: 'GET',
+                //             headers: {
+                //                 'Content-Type': 'application/json',
+                //             }
+                //         });
+
+                //         const data = await response.json();
+
+                //         if (!Array.isArray(data)) {
+                //             console.error('Expected results array but got:', data);
+                //             this.searchResults = [];
+                //             return;
+                //         }
+
+                //         if (!response.ok) {
+                //             if (response.status === 404) {
+                //                 this.searchResults = [];
+                //                 this.alertUser('No products found matching your criteria', 'warning');
+                //             } else {
+                //                 throw new Error(data.message || 'Error performing search');
+                //             }
+                //             return;
+                //         }
+
+                //         // Update the search results
+                //         this.searchResults = data;
+
+                //         // If results were found, show success message
+                //         if (data.length > 0) {
+                //             let message = `Found ${data.length} product${data.length === 1 ? '' : 's'}`;
+                //             if (this.activeStoreFilter) {
+                //                 const store = this.stores.find(s => (s._id || s.id) === this.activeStoreFilter);
+                //                 if (store) {
+                //                     message += ` at ${store.name}`;
+                //                 }
+                //             }
+                //             this.alertUser(message, 'success');
+                //         }
+
+                //     } catch (error) {
+                //         console.error('Search error:', error);
+                //         this.alertUser('Error performing search. Please try again.', 'error');
+                //         this.searchResults = [];
+                //     }
+                // }
+            },
+            created() {
+                this.checkLoginStatus();
+                window.addEventListener('storage', this.checkLoginStatus);
             },
         });
     </script>
 </body>
-
 </html>

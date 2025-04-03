@@ -13,27 +13,11 @@ router.get('/', async (req, res) => {
         const products = await productsCollection.find().toArray();
         res.status(200).json(products);
 
+        console.log(products);
+
         await client.close();
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({ message: "Internal server error", error: error.toString() });
-    }
-});
-
-// Route to get products of a single store
-router.get('/:storeId', async (req, res) => {
-    try {
-        const { client, database } = await connectDB();
-        const productsCollection = database.collection('Products');
-        const { storeId } = req.params;
-
-        // Fetch products belonging to the specified store
-        const products = await productsCollection.find({ storeId }).toArray();
-        res.status(200).json(products);
-
-        await client.close();
-    } catch (error) {
-        console.error(`Error fetching products for store ${req.params.storeId}:`, error);
         res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });
@@ -53,11 +37,10 @@ router.get('/search', async (req, res) => {
         // Create a case-insensitive regular expression for searching
         const searchRegex = new RegExp(query, 'i');
 
-        // Use $or to search in either the 'subject' or 'location' field
+        // Use $or to search in either the 'name' or 'location' field
         const searchResults = await productsCollection.find({
             $or: [
-                { subject: searchRegex }, 
-                { location: searchRegex }  
+                { name: searchRegex }
             ]
         }).toArray();
 
@@ -78,6 +61,24 @@ router.get('/search', async (req, res) => {
     } catch (error) {
         console.error("Error performing search:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Route to get products of a single store
+router.get('/store/:storeId', async (req, res) => {
+    try {
+        const { client, database } = await connectDB();
+        const productsCollection = database.collection('Products');
+        const { storeId } = req.params;
+
+        // Fetch products belonging to the specified store
+        const products = await productsCollection.find({ store_id: storeId }).toArray();
+        res.status(200).json(products);
+
+        await client.close();
+    } catch (error) {
+        console.error(`Error fetching products for store ${req.params.storeId}:`, error);
+        res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });
 
