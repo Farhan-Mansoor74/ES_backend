@@ -7,6 +7,73 @@
   <script>document.getElementsByTagName("html")[0].className += " js";</script>
   <link rel="stylesheet" href="./css/style.css">
   <title>Admin - EcoShopper</title>
+  <style>
+    .section-container {
+      padding: 20px;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .section-title {
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table,
+    th,
+    td {
+      border: 1px solid #ddd;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
 
 <body>
@@ -46,26 +113,21 @@
           <a href="#0">Stores</a>
 
           <ul class="cd-side__sub-list">
-            <li class="cd-side__sub-item"><a href="#0">Add New Store</a></li>
-            <li class="cd-side__sub-item"><a href="#0">View/Edit Stores</a></li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('add-store'); return false;">Add New
+                Store</a></li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('view-stores'); return false;">View/Edit
+                Stores</a></li>
           </ul>
         </li>
 
-        <li
-          class="cd-side__item cd-side__item--has-children cd-side__item--notifications cd-side__item--selected js-cd-item--has-children">
-          <a href="#0">Notifications<span class="cd-count">3</span></a>
+        <li class="cd-side__item cd-side__item--has-children cd-side__item--products js-cd-item--has-children">
+          <a href="#0">Products</a>
 
           <ul class="cd-side__sub-list">
-            <li class="cd-side__sub-item"><a aria-current="page" href="#0">All Notifications</a></li>
-          </ul>
-        </li>
-
-        <li class="cd-side__item cd-side__item--has-children cd-side__item--comments js-cd-item--has-children">
-          <a href="#0">Deals</a>
-
-          <ul class="cd-side__sub-list">
-            <li class="cd-side__sub-item"><a href="#0">Add New Deal</a></li>
-            <li class="cd-side__sub-item"><a href="#0">View/Edit Deals</a></li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('view-products'); return false;">View
+                Products by Store</a></li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('add-products'); return false;">Add
+                Products</a></li>
           </ul>
         </li>
 
@@ -73,8 +135,10 @@
           <a href="#0">Users</a>
 
           <ul class="cd-side__sub-list">
-            <li class="cd-side__sub-item"><a href="#0">Add New User</a></li>
-            <li class="cd-side__sub-item"><a href="#0">Manage Admins</a></li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('add-user'); return false;">Add New User</a>
+            </li>
+            <li class="cd-side__sub-item"><a href="#0" onclick="showSection('manage-admins'); return false;">Manage
+                Admins</a></li>
           </ul>
         </li>
       </ul>
@@ -86,13 +150,225 @@
     </nav>
 
     <div class="cd-content-wrapper">
-      <div class="text-component text-center">
-        <h1>Responsive Sidebar Navigation</h1>
-        <p>👈<a href="https://codyhouse.co/gem/responsive-sidebar-navigation">Article &amp; Download</a></p>
+      <!-- Dashboard Home -->
+      <div id="dashboard-home" class="admin-section active section-container">
+        <h1 class="section-title">EcoShopper Admin Dashboard</h1>
+        <p>Welcome to the EcoShopper admin dashboard. Select an option from the sidebar to manage your application.</p>
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <h3>Total Stores</h3>
+            <div id="total-stores">Loading...</div>
+          </div>
+          <div class="stat-card">
+            <h3>Registered Users</h3>
+            <div id="registered-users">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stores Sections -->
+      <div id="add-store" class="admin-section section-container">
+        <h2 class="section-title">Add New Store</h2>
+        <form id="store-form">
+          <div class="form-group">
+            <label for="store-name">Store Name</label>
+            <input type="text" id="store-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="store-address">Address</label>
+            <input type="text" id="store-address" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="store-city">City</label>
+            <input type="text" id="store-city" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="store-country">Country</label>
+            <input type="text" id="store-country" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="store-phone">Phone</label>
+            <input type="tel" id="store-phone" class="form-control">
+          </div>
+          <button type="submit" class="btn">Add Store</button>
+        </form>
+      </div>
+
+      <div id="view-stores" class="admin-section section-container">
+        <h2 class="section-title">View/Edit Stores</h2>
+        <table id="stores-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>City</th>
+              <th>Phone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="stores-list">
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Products Section -->
+      <div id="view-products" class="admin-section section-container">
+        <h2 class="section-title">View Products by Store</h2>
+
+        <div class="form-group">
+          <label for="store-select">Select Store</label>
+          <select id="store-select" class="form-control" onchange="loadProductsByStore(this.value)">
+            <option value="">-- Select a Store --</option>
+            <!-- Store options will be loaded dynamically -->
+          </select>
+        </div>
+
+        <div id="products-container" style="margin-top: 20px;">
+          <table id="products-table">
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-list">
+              <!-- Product data will be loaded here dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="add-products" class="admin-section section-container">
+        <h2 class="section-title">Add Products</h2>
+
+        <!-- Individual Product Form -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h3>Add Single Product</h3>
+          </div>
+          <div class="card-body">
+            <form id="product-form">
+              <div class="form-group">
+                <label for="product-store">Store</label>
+                <select id="product-store" class="form-control" required>
+                  <option value="">-- Select a Store --</option>
+                  <!-- Store options will be loaded dynamically -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="product-name">Product Name</label>
+                <input type="text" id="product-name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="product-price">Price ($)</label>
+                <input type="number" id="product-price" class="form-control" step="0.01" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="product-category">Category</label>
+                <input type="text" id="product-category" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="product-stock">Stock</label>
+                <input type="number" id="product-stock" class="form-control" step="0.01" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="product-imageurl">Image link</label>
+                <textarea id="product-imageurl" class="form-control" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn">Add Product</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bulk Upload Form -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Bulk Upload Products (Excel)</h3>
+          </div>
+          <div class="card-body">
+            <p>Upload an Excel file (.xlsx) with product information. The Excel file should have the following columns:
+            </p>
+            <ul style="margin-bottom: 15px;">
+              <li>store_id (required)</li>
+              <li>name (required)</li>
+              <li>description</li>
+              <li>price (required)</li>
+              <li>category (required)</li>
+            </ul>
+
+            <a href="#" id="download-template" class="btn" style="margin-bottom: 15px;">Download Template</a>
+
+            <form id="excel-upload-form">
+              <div class="form-group">
+                <label for="store-for-excel">Store (if not specified in Excel)</label>
+                <select id="store-for-excel" class="form-control">
+                  <option value="">-- Select a Store --</option>
+                  <!-- Store options will be loaded dynamically -->
+                </select>
+                <small class="form-text text-muted">If store_id column is not provided in Excel, all products will be
+                  assigned to this store.</small>
+              </div>
+              <div class="form-group">
+                <label for="excel-file">Excel File</label>
+                <input type="file" id="excel-file" class="form-control" accept=".xlsx, .xls" required>
+              </div>
+              <button type="submit" class="btn">Upload Products</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Sections -->
+      <div id="add-user" class="admin-section section-container">
+        <h2 class="section-title">Add New User</h2>
+        <form id="user-form">
+          <div class="form-group">
+            <label for="user-name">Full Name</label>
+            <input type="text" id="user-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="user-email">Email</label>
+            <input type="email" id="user-email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="user-password">Password</label>
+            <input type="password" id="user-password" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="user-role">Role</label>
+            <select id="user-role" class="form-control" required>
+              <option value="user">Regular User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Add User</button>
+        </form>
+      </div>
+
+      <div id="manage-admins" class="admin-section section-container">
+        <h2 class="section-title">Manage Admin Users</h2>
+        <table id="admins-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Created On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admins-list">
+            <!-- Admin user data will be loaded here dynamically -->
+          </tbody>
+        </table>
       </div>
     </div> <!-- .content-wrapper -->
   </main> <!-- .cd-main-content -->
-  
+
   <script src="./js/util.js"></script> <!-- util functions included in the CodyHouse framework -->
   <script src="./js/menu-aim.js"></script>
   <script src="./js/main.js"></script>
@@ -121,6 +397,617 @@
       } catch (error) {
         console.error('Logout error:', error);
         alert('Logout failed. Please try again.'); // Handle errors properly
+      }
+    }
+    // Show section function
+    function showSection(sectionId) {
+      // Hide all sections
+      const sections = document.querySelectorAll('.admin-section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Show the selected section
+      const selectedSection = document.getElementById(sectionId);
+      if (selectedSection) {
+        selectedSection.classList.add('active');
+      }
+
+      // Load section data if needed
+      loadSectionData(sectionId);
+    }
+
+    // Load section data based on section ID
+    function loadSectionData(sectionId) {
+      switch (sectionId) {
+        case 'dashboard-home':
+          loadDashboardStats();
+          break;
+        case 'view-stores':
+          loadStores();
+          break;
+        case 'manage-admins':
+          loadAdmins();
+          break;
+        case 'view-products':
+          loadStoresForProductView();
+          break;
+        case 'add-products':
+          loadStoresForProductForms();
+          break;
+      }
+    }
+
+    // Dashboard stats
+    async function loadDashboardStats() {
+      try {
+        const [storesResponse, dealsResponse, usersResponse] = await Promise.all([
+          fetch('http://localhost:5500/admin/stores/count'),
+          fetch('http://localhost:5500/admin/deals/count'),
+          fetch('http://localhost:5500/admin/users/count')
+        ]);
+
+        if (storesResponse.ok && dealsResponse.ok && usersResponse.ok) {
+          const storesData = await storesResponse.json();
+          const dealsData = await dealsResponse.json();
+          const usersData = await usersResponse.json();
+
+          document.getElementById('total-stores').textContent = storesData.count;
+          document.getElementById('active-deals').textContent = dealsData.count;
+          document.getElementById('registered-users').textContent = usersData.count;
+        }
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+      }
+    }
+
+    async function loadStores() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user')); // Parse stored user data
+        const role = user ? user.role : null; // Extract role
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+          method: 'GET',
+          headers: {
+            'X-User-Role': role, // Custom header to send role
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error(`Error ${response.status}:`, await response.text());
+          return;
+        }
+
+        const stores = await response.json();
+        const tableBody = document.getElementById('stores-list');
+        tableBody.innerHTML = '';
+
+        stores.forEach(store => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+        <td>${store.name}</td>
+        <td>${store.category}</td>
+        <td>${store.city}</td>
+        <td>${store.phone || 'N/A'}</td>
+        <td>
+          <button class="btn btn-sm" onclick="editStore('${store._id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStore('${store._id}')">Delete</button>
+        </td>
+      `;
+          tableBody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error('Error loading stores:', error);
+      }
+    }
+
+
+    // Store form submission
+    document.getElementById('store-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const storeData = {
+        name: document.getElementById('store-name').value,
+        address: document.getElementById('store-address').value,
+        city: document.getElementById('store-city').value,
+        country: document.getElementById('store-country').value,
+        phone: document.getElementById('store-phone').value,
+      };
+
+      try {
+        const user = JSON.parse(localStorage.getItem('user')); // Parse stored user data
+        const role = user ? user.role : null; // Extract role
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/add-store', {
+          method: 'POST',
+          headers: {
+            'X-User-Role': role,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(storeData)
+        });
+
+        if (response.ok) {
+          alert('Store added successfully!');
+          document.getElementById('store-form').reset();
+        } else {
+          throw new Error('Failed to add store');
+        }
+      } catch (error) {
+        console.error('Error adding store:', error);
+        alert('Error adding store. Please try again.');
+      }
+    });
+
+    // Admin users functions
+    async function loadAdmins() {
+      try {
+        const response = await fetch('http://localhost:5500/admin/fn/get-admins');
+        if (response.ok) {
+          const admins = await response.json();
+          const tableBody = document.getElementById('admins-list');
+          tableBody.innerHTML = '';
+
+          admins.forEach(admin => {
+            const createdDate = new Date(admin.createdAt).toLocaleDateString();
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${admin.name}</td>
+              <td>${admin.email}</td>
+              <td>${admin.role}</td>
+              <td>${createdDate}</td>
+              <td>
+                <button class="btn btn-sm" onclick="editUser('${admin._id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser('${admin._id}')">Delete</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading admin users:', error);
+      }
+    }
+
+    // User form submission
+    document.getElementById('user-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const userData = {
+        name: document.getElementById('user-name').value,
+        email: document.getElementById('user-email').value,
+        password: document.getElementById('user-password').value,
+        role: document.getElementById('user-role').value
+      };
+
+      try {
+        const response = await fetch('http://localhost:5500/admin/fn/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
+
+        if (response.ok) {
+          alert('User added successfully!');
+          document.getElementById('user-form').reset();
+        } else {
+          throw new Error('Failed to add user');
+        }
+      } catch (error) {
+        console.error('Error adding user:', error);
+        alert('Error adding user. Please try again.');
+      }
+    });
+
+    // CRUD operations for all entities
+    async function editStore(id) {
+      // Fetch store data and populate form
+      try {
+        const response = await fetch(`http://localhost:5500/stores/${id}`);
+        if (response.ok) {
+          const store = await response.json();
+          // Populate form and show edit view
+          showSection('add-store');
+          document.getElementById('store-name').value = store.name;
+          document.getElementById('store-address').value = store.address;
+          document.getElementById('store-city').value = store.city;
+          document.getElementById('store-country').value = store.country;
+          document.getElementById('store-phone').value = store.phone || '';
+
+          // Change form action to update
+          const form = document.getElementById('store-form');
+          form.dataset.id = id;
+          form.dataset.action = 'update';
+
+          // Change button text
+          form.querySelector('button[type="submit"]').textContent = 'Update Store';
+        }
+      } catch (error) {
+        console.error('Error loading store for edit:', error);
+      }
+    }
+
+    async function deleteStore(id) {
+      if (confirm('Are you sure you want to delete this store?')) {
+        try {
+          const user = JSON.parse(localStorage.getItem('user')); // Parse stored user data
+          const role = user ? user.role : null; // Extract role
+
+          if (!role) {
+            console.error("No role found. User might not be logged in.");
+            return;
+          }
+
+          const response = await fetch(`http://localhost:5500/admin/fn/delete/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'X-User-Role': role,
+              'Content-Type': 'application/json'
+            },
+          });
+
+          if (response.ok) {
+            alert('Store deleted successfully!');
+            loadStores();
+          } else {
+            throw new Error('Failed to delete store');
+          }
+        } catch (error) {
+          console.error('Error deleting store:', error);
+          alert('Error deleting store. Please try again.');
+        }
+      }
+    }
+
+    // Load stores for the dropdown
+    async function loadStoresForProductView() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const role = user ? user.role : null;
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+          method: 'GET',
+          headers: {
+            'X-User-Role': role,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const stores = await response.json();
+        const storeSelect = document.getElementById('store-select');
+
+        // Clear existing options except the first one
+        while (storeSelect.options.length > 1) {
+          storeSelect.remove(1);
+        }
+
+        // Add store options
+        stores.forEach(store => {
+          const option = document.createElement('option');
+          option.value = store._id;
+          option.textContent = store.name;
+          storeSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error loading stores for dropdown:', error);
+      }
+    }
+
+    // Load products for a specific store
+    async function loadProductsByStore(storeId) {
+      if (!storeId) {
+        document.getElementById('products-list').innerHTML = '';
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5500/products/store/${storeId}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const products = await response.json();
+        const tableBody = document.getElementById('products-list');
+        tableBody.innerHTML = '';
+
+        if (products.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No products found for this store</td></tr>';
+          return;
+        }
+
+        products.forEach(product => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+          <td>${product.name || 'N/A'}</td>
+          <td>${product.price ? 'AED' + product.price.toFixed(2) : 'N/A'}</td>
+          <td>${product.category || 'N/A'}</td>
+          <td>${product.availableInventory || '0'}</td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product._id}')">Delete</button>
+          </td>
+        `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error loading products:', error);
+        document.getElementById('products-list').innerHTML =
+          '<tr><td colspan="5" style="text-align: center;">Error loading products. Please try again.</td></tr>';
+      }
+    }
+
+    // Delete product function
+    async function deleteProduct(id) {
+      if (confirm('Are you sure you want to delete this product?')) {
+        try {
+          const user = JSON.parse(localStorage.getItem('user'));
+          const role = user ? user.role : null;
+
+          if (!role) {
+            console.error("No role found. User might not be logged in.");
+            return;
+          }
+          const response = await fetch(`http://localhost:5500/admin/fn/products/delete/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'X-User-Role': role
+            }
+          });
+
+          if (response.ok) {
+            alert('Product deleted successfully!');
+            // Reload products for the current store
+            loadProductsByStore(document.getElementById('store-select').value);
+          } else {
+            throw new Error('Failed to delete product');
+          }
+        } catch (error) {
+          console.error('Error deleting product:', error);
+          alert('Error deleting product. Please try again.');
+        }
+      }
+    }
+
+    // Load stores for product form dropdowns
+    async function loadStoresForProductForms() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const role = user ? user.role : null;
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+          method: 'GET',
+          headers: {
+            'X-User-Role': role,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const stores = await response.json();
+
+        // Populate single product form dropdown
+        const singleProductStoreSelect = document.getElementById('product-store');
+        while (singleProductStoreSelect.options.length > 1) {
+          singleProductStoreSelect.remove(1);
+        }
+
+        // Populate bulk upload form dropdown
+        const bulkUploadStoreSelect = document.getElementById('store-for-excel');
+        while (bulkUploadStoreSelect.options.length > 1) {
+          bulkUploadStoreSelect.remove(1);
+        }
+
+        // Add store options to both dropdowns
+        stores.forEach(store => {
+          // For single product form
+          const singleOption = document.createElement('option');
+          singleOption.value = store._id;
+          singleOption.textContent = store.name;
+          singleProductStoreSelect.appendChild(singleOption);
+
+          // For bulk upload form
+          const bulkOption = document.createElement('option');
+          bulkOption.value = store._id;
+          bulkOption.textContent = store.name;
+          bulkUploadStoreSelect.appendChild(bulkOption);
+        });
+
+        console.log("Store options added to product form dropdowns");
+      } catch (error) {
+        console.error('Error loading stores for product forms:', error);
+      }
+    }
+
+    // Handle single product form submission
+    document.getElementById('product-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const productData = {
+        store_id: document.getElementById('product-store').value,
+        name: document.getElementById('product-name').value,
+        price: parseFloat(document.getElementById('product-price').value),
+        category: document.getElementById('product-category').value,
+        availableInventory: parseInt(document.getElementById('product-stock').value),
+        image: document.getElementById('product-imageurl').value
+      };
+
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const role = user ? user.role : null;
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/add-product', {
+          method: 'POST',
+          headers: {
+            'X-User-Role': role,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+          alert('Product added successfully!');
+          document.getElementById('product-form').reset();
+        } else {
+          throw new Error('Failed to add product');
+        }
+      } catch (error) {
+        console.error('Error adding product:', error);
+        alert('Error adding product. Please try again.');
+      }
+    });
+
+    // Handle Excel file download template
+    document.getElementById('download-template').addEventListener('click', function (e) {
+      e.preventDefault();
+
+      // Create a template Excel file
+      // Using a CSV for simplicity as it can be opened in Excel
+      const template = 'store_id,name,price,category,image,availableInventory\n,,,,';
+
+      // Create a blob and download link
+      const blob = new Blob([template], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'product_template.csv';
+
+      document.body.appendChild(a);
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    });
+
+    // Handle Excel file upload
+    document.getElementById('excel-upload-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('excel-file');
+      const storeId = document.getElementById('store-for-excel').value;
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please select an Excel file');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      if (storeId) {
+        formData.append('store_id', storeId);
+      }
+
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const role = user ? user.role : null;
+
+        if (!role) {
+          console.error("No role found. User might not be logged in.");
+          return;
+        }
+
+        const response = await fetch('http://localhost:5500/admin/fn/products/upload', {
+          method: 'POST',
+          headers: {
+            'X-User-Role': role,
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          alert(`Excel import successful! Added ${result.added} products.`);
+          document.getElementById('excel-upload-form').reset();
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to upload products');
+        }
+      } catch (error) {
+        console.error('Error uploading products:', error);
+        alert(`Error uploading products: ${error.message}`);
+      }
+    });
+
+    async function editUser(id) {
+      // Similar to editStore but for users
+      try {
+        const response = await fetch(`http://localhost:5500/admin/users/${id}`);
+        if (response.ok) {
+          const user = await response.json();
+          showSection('add-user');
+
+          document.getElementById('user-name').value = user.name;
+          document.getElementById('user-email').value = user.email;
+          // Password field is left empty for security reasons
+          document.getElementById('user-role').value = user.role;
+
+          // Change form action to update
+          const form = document.getElementById('user-form');
+          form.dataset.id = id;
+          form.dataset.action = 'update';
+
+          // Change button text
+          form.querySelector('button[type="submit"]').textContent = 'Update User';
+        }
+      } catch (error) {
+        console.error('Error loading user for edit:', error);
+      }
+    }
+
+    async function deleteUser(id) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        try {
+          const response = await fetch(`http://localhost:5500/admin/users/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            alert('User deleted successfully!');
+            loadAdmins();
+          } else {
+            throw new Error('Failed to delete user');
+          }
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          alert('Error deleting user. Please try again.');
+        }
       }
     }
   </script>

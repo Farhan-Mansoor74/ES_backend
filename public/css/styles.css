@@ -79,6 +79,7 @@ main {
 	align-items: center;
 	border-bottom: 1px solid rgba(128, 128, 128, 0.46);
 	border-top: 3px solid rgb(5, 71, 37);
+	height: 8vh;
 }
 
 /* Logo */

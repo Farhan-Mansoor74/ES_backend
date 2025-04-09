@@ -46,7 +46,7 @@ app.use('/orders', ordersRouter);
 app.use('/signup', signUpRouter);
 app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
-app.use('/admin/api', adminRouter);  // Changed this to avoid conflicts
+app.use('/admin/fn', adminRouter);  
 app.use('/stores', storesRouter);
 
 // Start the server

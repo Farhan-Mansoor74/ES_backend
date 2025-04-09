@@ -1,4 +1,5 @@
 import express from 'express';
+import { ObjectId } from 'mongodb';
 import connectDB from '../mongodbConnection.js';
 
 const router = express.Router();
@@ -9,7 +10,6 @@ router.get('/', async (req, res) => {
         const { client, database } = await connectDB();
         const storesCollection = database.collection('Stores');
 
-        // Fetch all stores
         const stores = await storesCollection.find().toArray();
         res.status(200).json(stores);
 
@@ -27,9 +27,8 @@ router.get('/:storeId', async (req, res) => {
         const storesCollection = database.collection('Stores');
         const { storeId } = req.params;
 
-        // Fetch store by ID
-        const store = await storesCollection.findOne({ storeId });
-        
+        const store = await storesCollection.findOne({ _id: new ObjectId(storeId) });
+
         if (!store) {
             return res.status(404).json({ message: "Store not found" });
         }
