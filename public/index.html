@@ -13,6 +13,9 @@
     <!-- Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Train+One&display=swap');
+    </style>
 </head>
 
 <body>
@@ -41,17 +44,21 @@
                 <i class="fas" :class="isDarkMode ? 'fa-moon' : 'fa-sun'"></i>
             </button>
 
-            <!-- Login Button -->
-            <!-- Show either Login or Logout button based on authentication status -->
-            <button v-if="!isAuthenticated" @click="goToLogin" class="login-button">Login</button>
-            <button v-else @click="logout" class="login-button">Logout</button>
-
             <!-- Cart Button -->
             <button @click="showCheckout" class="cart-button" :class="{ 'on-checkout': checkoutPage }"
                 :data-tooltip="checkoutPage ? 'Back to Shopping' : 'View Cart'">
                 <span class="fas fa-cart-plus"></span>
                 <sup>{{ cartItemCount }}</sup>
             </button>
+            <button @click="showStats" class="stats-button" title="View Your Impact" v-if="isAuthenticated">
+                <span class="fas fa-leaf"></span>
+                <sup>{{ userStats.ecoPoints }}</sup>
+            </button>
+            <!-- Login Button -->
+            <!-- Show either Login or Logout button based on authentication status -->
+            <button v-if="!isAuthenticated" @click="goToLogin" class="login-button">Login</button>
+            <button v-else @click="logout" class="login-button">Logout</button>
+
         </header>
 
         <!-- Login And Sign Up forms -->
@@ -89,7 +96,6 @@
                                     <i class="fas fa-lock"></i>
                                     <input type="password" placeholder="Enter your password" required>
                                 </div>
-                                <div class="text" style="position:relative"><a href="#">Forgot password?</a></div>
                                 <div class="button input-box">
                                     <input type="submit" value="Login">
                                 </div>
@@ -145,9 +151,9 @@
 
         <!-- Landing Page Section -->
         <main class="landing" v-if="!showProducts && !checkoutPage && !showReceipt && !isLoginPage && !showMap">
-            <div class="landing-section">
+            <div class="landing-section background-image">
                 <div class="text-content">
-                    <h2>Welcome to {{ sitename }}</h2>
+                    <h2>Welcome to {{ sitename }}!</h2>
                     <p>
                         Discover the best deals from nearby stores in real time!
                         EcoShopper helps you save money while reducing paper waste
@@ -157,43 +163,6 @@
                         View latest deals around you!
                     </button>
                 </div>
-
-                <!-- Background Video Section -->
-                <div class="video-wrapper">
-                    <video autoplay muted loop class="background-video">
-                        <source src="http://localhost:5500/images/bg_vid.mp4" type="video/mp4" />
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-            </div>
-
-            <!-- products slideshow -->
-            <div class="slideshow-container">
-                <div class="mySlides fade">
-                    <div class="numbertext">1 / 3</div>
-                    <img src="http://localhost:5500/images/football.jpg" style="width: 100%" />
-                    <div class="text">Football</div>
-                </div>
-
-                <div class="mySlides fade">
-                    <div class="numbertext">2 / 3</div>
-                    <img src="http://localhost:5500/images/debate.jpg" style="width: 100%" />
-                    <div class="text">Debate</div>
-                </div>
-
-                <div class="mySlides fade">
-                    <div class="numbertext">3 / 3</div>
-                    <img src="http://localhost:5500/images/cricket.jpeg" style="width: 100%" />
-                    <div class="text">Cricket</div>
-                </div>
-            </div>
-
-            <br />
-
-            <div style="text-align: center">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
             </div>
         </main>
 
@@ -225,7 +194,6 @@
                 <div class="store-info">
                     <p><i class="fas fa-map-marker-alt"></i> {{ selectedStore.address || 'Address not available' }}</p>
                     <p><i class="fas fa-phone"></i> {{ selectedStore.phone || 'Phone not available' }}</p>
-                    <p><i class="fas fa-clock"></i> {{ selectedStore.hours || 'Hours not available' }}</p>
                     <div class="store-distance" v-if="selectedStore.distance">
                         <i class="fas fa-route"></i> {{ (selectedStore.distance / 1000).toFixed(2) }} km away
                     </div>
@@ -271,6 +239,15 @@
                     <option value="desc">Descending</option>
                 </select>
             </div>
+            <div class="active-filter-banner" v-if="activeStoreFilter && showProducts">
+                <span>
+                    <i class="fas fa-store"></i>
+                    Showing products from: {{ stores.find(s => (s._id || s.id) === activeStoreFilter)?.name }}
+                </span>
+                <button @click="clearStoreFilter" class="clear-filter-btn">
+                    <i class="fas fa-times"></i> Show All Products
+                </button>
+            </div>
             <div class="all-products">
                 <div v-for="product in searchResults" :key="product.id" class="product-card">
                     <div class="product-category" v-if="product.category">{{ product.category }}</div>
@@ -306,25 +283,29 @@
         <main v-if="checkoutPage">
             <div class="checkout-container">
                 <!-- Left Side: Customer Information -->
-                <div class="checkout-left">
-                    <h2>Checkout</h2>
-                    <div class="form-group">
-                        <label for="name"><strong>Name:</strong></label>
+                <div class="checkout-left form">
+                    <h2 style="color: black; margin-bottom: 10px;">Checkout</h2>
+
+                    <div class="label">
+                        <span class="title" :class="{ 'focused': order.name }">Name</span>
                         <input id="name" v-model.trim="order.name" @input="validateName"
-                            :class="{'invalid': formErrors.name}" placeholder="Full Name" />
+                            :class="['input-field', { 'invalid': formErrors.name }]" placeholder="Full Name" />
                         <span class="error-message" v-if="formErrors.name">
                             Please enter a valid name (letters only)
                         </span>
                     </div>
-                    <div class="form-group">
-                        <label for="phone"><strong>Phone:</strong></label>
+
+                    <div class="label">
+                        <span class="title" :class="{ 'focused': order.phone }">Phone</span>
                         <input id="phone" v-model.trim="order.phone" @input="validatePhone"
-                            :class="{'invalid': formErrors.phone}" type="tel" placeholder="Phone Number" />
+                            :class="['input-field', { 'invalid': formErrors.phone }]" type="tel"
+                            placeholder="Phone Number" />
                         <span class="error-message" v-if="formErrors.phone">
                             Please enter a valid phone number (numbers only)
                         </span>
                     </div>
                 </div>
+
                 <!-- Right Side: Cart Details -->
                 <div class="checkout-right">
                     <h2>Your Cart ({{ cartItemCount }} items)</h2>
@@ -373,8 +354,9 @@
 
             <!-- Back to products Button -->
             <button class="back-btn" @click="viewProducts">
-                Back to deals
+                <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to deals
             </button>
+
 
             <!-- Loading Overlay -->
             <div v-if="isLoading" class="loading-overlay">
@@ -420,7 +402,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="4" class="total-label">Total</td>
+                                <td colspan="3" class="total-label">Total</td>
                                 <td class="total-amount">{{ orderDetails.total }} AED</td>
                             </tr>
                         </tfoot>
@@ -437,6 +419,96 @@
                 </button>
             </div>
         </main>
+
+        <!-- User Stats Modal -->
+        <div class="stats-modal" v-if="showStatsModal">
+            <div class="stats-modal-content">
+                <div class="stats-header">
+                    <h2>Your EcoShopper Impact</h2>
+                    <button @click="closeStatsModal" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="impact-stats">
+                    <div class="impact-card">
+                        <div class="impact-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="impact-data">
+                            <h3>Paper Saved</h3>
+                            <div class="stat-value">{{ userStats.paperSaved.toFixed(2) }} kg</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" :style="{ width: getPaperSavedPercentage + '%' }"></div>
+                            </div>
+                            <div class="target-info">Target: {{ userStats.paperSavedTarget.toFixed(2) }} kg</div>
+                        </div>
+                    </div>
+
+                    <div class="impact-card">
+                        <div class="impact-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="impact-data">
+                            <h3>Eco Purchases</h3>
+                            <div class="stat-value">{{ userStats.ecoPurchases }}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" :style="{ width: getEcoPurchasesPercentage + '%' }"></div>
+                            </div>
+                            <div class="target-info">Target: {{ userStats.purchaseTarget }}</div>
+                        </div>
+                    </div>
+
+                    <div class="impact-card">
+                        <div class="impact-icon">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <div class="impact-data">
+                            <h3>Trees Saved</h3>
+                            <div class="stat-value">{{ getTreesSaved }}</div>
+                            <p class="impact-note">Approx. 1 tree saved per 17kg of paper</p>
+                        </div>
+                    </div>
+
+                    <div class="impact-card">
+                        <div class="impact-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="impact-data">
+                            <h3>EcoPoints</h3>
+                            <div class="stat-value">{{ userStats.ecoPoints }}</div>
+                            <p class="impact-note">You're {{ userStats.nextRewardThreshold - userStats.ecoPoints }}
+                                points away from your next reward!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rewards-section">
+                    <h3>Your Rewards</h3>
+                    <div class="rewards-list">
+                        <div v-for="(reward, index) in userStats.rewards" :key="index" class="reward-item" :class="{ 'new': reward.unlocked }">
+                            <div class="reward-icon" :class="{ 'unlocked': reward.unlocked }">
+                                <i :class="reward.icon"></i>
+                            </div>
+                            <div class="reward-info">
+                                <h4>{{ reward.name }}</h4>
+                                <p>{{ reward.description }}</p>
+                                <span v-if="reward.unlocked" class="reward-status unlocked">Unlocked!</span>
+                                <span v-else class="reward-status">{{ reward.pointsRequired - userStats.ecoPoints }}
+                                    points needed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-actions">
+                    <button @click="shareStats" class="share-btn">
+                        <i class="fas fa-share-alt"></i> Share Your Impact
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Vue App -->
@@ -487,6 +559,52 @@
                 selectedStore: null, // Currently selected store
                 storeProducts: [], // Products at selected store
                 activeStoreFilter: null, // For filtering products by store
+                showStatsModal: false,
+                userStats: {
+                    paperSaved: 0,
+                    paperSavedTarget: 10, // kg
+                    ecoPurchases: 0,
+                    purchaseTarget: 50,
+                    ecoPoints: 0,
+                    nextRewardThreshold: 100,
+                    rewards: [
+                        {
+                            name: "Green Shopper",
+                            description: "Complete 5 eco-friendly purchases",
+                            pointsRequired: 50,
+                            unlocked: false,
+                            icon: "fas fa-seedling"
+                        },
+                        {
+                            name: "Paper Saver",
+                            description: "Save 5kg of paper",
+                            pointsRequired: 100,
+                            unlocked: false,
+                            icon: "fas fa-file-alt"
+                        },
+                        {
+                            name: "Eco Warrior",
+                            description: "Save 10kg of paper",
+                            pointsRequired: 200,
+                            unlocked: false,
+                            icon: "fas fa-award"
+                        },
+                        {
+                            name: "Planet Protector",
+                            description: "Complete 25 eco-friendly purchases",
+                            pointsRequired: 300,
+                            unlocked: false,
+                            icon: "fas fa-globe-americas"
+                        },
+                        {
+                            name: "Forest Guardian",
+                            description: "Save your first tree (17kg of paper)",
+                            pointsRequired: 400,
+                            unlocked: false,
+                            icon: "fas fa-tree"
+                        }
+                    ]
+                }
             },
             mounted() {
                 this.Products = [],
@@ -494,7 +612,6 @@
                     this.fetchAllProducts();
                 this.checkUserAuth();
                 this.$nextTick(() => {
-                    this.showSlides();
                     this.searchResults = this.products; // Populate searchResults with all products initially
                 });
 
@@ -534,6 +651,16 @@
                 isOrderValid: function () {
                     return this.isValidName(this.order.name) && this.isValidPhone(this.order.phone);
                 },
+                getPaperSavedPercentage() {
+                    return Math.min(100, (this.userStats.paperSaved / this.userStats.paperSavedTarget) * 100);
+                },
+                getEcoPurchasesPercentage() {
+                    return Math.min(100, (this.userStats.ecoPurchases / this.userStats.purchaseTarget) * 100);
+                },
+                getTreesSaved() {
+                    // Approximate 1 tree saved per 17kg of paper
+                    return (this.userStats.paperSaved / 17).toFixed(2);
+                }
             },
             methods: {
                 goToLogin() {
@@ -817,80 +944,6 @@
                     this.checkoutPage = false;
                 },
 
-                // Add order to database, request sent from frontend
-                addOrder: async function () {
-                    this.isLoading = true;
-                    try {
-                        // Get address from coordinates if we have them
-                        let addressToUse = 'Address not provided';
-                        if (this.userLocation) {
-                            addressToUse = await this.getAddressFromCoordinates(
-                                this.userLocation.lat,
-                                this.userLocation.lng
-                            );
-                        }
-
-                        const orderData = {
-                            name: this.order.name,
-                            phone: this.order.phone,
-                            address: addressToUse,
-                            cart: this.cartDetails.map(product => ({
-                                id: product._id || product.id,
-                                name: product.name,
-                                price: product.price,
-                                quantity: product.quantity
-                            })),
-                            total: this.cartTotal,
-                        };
-
-                        const response = await fetch('http://localhost:5500/orders', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(orderData),
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to place the order');
-                        }
-
-                        // Update backend inventory
-                        for (let product of this.cartDetails) {
-                            await this.updateAvailability(product._id || product.id, product.quantity);
-                        }
-
-                        // Update receipt
-                        this.orderDetails = {
-                            name: this.order.name,
-                            phone: this.order.phone,
-                            address: addressToUse,
-                            products: this.cartDetails,
-                            total: this.cartTotal,
-                            date: this.getCurrentDate()
-                        };
-
-                        this.alertUser('Order placed successfully!', 'success');
-
-                        // Reset cart and form
-                        this.cart = {};
-                        this.order.name = '';
-                        this.order.phone = '';
-
-                        this.checkoutPage = false;
-                        this.showReceipt = true;
-
-                        // Refresh products data
-                        await this.fetchAllProducts();
-
-                    } catch (error) {
-                        console.error(error);
-                        this.alertUser('Error placing the order. Please try again later.', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
                 // Update product availability in backend
                 updateAvailability: async function (productId, quantity) {
                     try {
@@ -938,35 +991,58 @@
                     }
                 },
 
-                // Add items to cart
                 addToCart: function (product) {
-                    console.log('Adding to cart:', product._id || product.id, product.name);
+                    if (this.isLoggedIn) {
+                        console.log('Adding to cart:', product._id || product.id, product.name);
 
-                    const productId = product._id || product.id;
-                    const originalInventory = this.originalInventory[productId];
+                        const productId = product._id || product.id;
+                        const originalInventory = this.originalInventory[productId];
 
-                    // Check against original inventory
-                    if (this.cart[productId] && this.cart[productId] >= originalInventory) {
-                        this.alertUser(`Maximum available stock (${originalInventory}) reached for ${product.name}!`, 'warning');
-                        return;
+                        // Check against original inventory
+                        if (this.cart[productId] && this.cart[productId] >= originalInventory) {
+                            this.alertUser(`Maximum available stock (${originalInventory}) reached for ${product.name}!`, 'warning');
+                            return;
+                        }
+
+                        // Initialize or increment quantity
+                        if (this.cart[productId]) {
+                            this.cart[productId]++;
+                        } else {
+                            this.$set(this.cart, productId, 1);
+                        }
+
+                        // Update displayed inventory
+                        const productIndex = this.products.findIndex(c => (c._id || c.id) === productId);
+                        if (productIndex !== -1) {
+                            this.products[productIndex].availableInventory = originalInventory - this.cart[productId];
+                        }
+
+                        this.alertUser(`${product.name} has been added to the cart!`, 'success');
+                    }
+                    else {
+                        this.goToLogin();
+                        this.showMap = false;
                     }
 
-                    // Initialize or increment quantity
-                    if (this.cart[productId]) {
-                        this.cart[productId]++;
-                    } else {
-                        this.$set(this.cart, productId, 1);
-                    }
-
-                    // Update displayed inventory
-                    const productIndex = this.products.findIndex(c => (c._id || c.id) === productId);
-                    if (productIndex !== -1) {
-                        this.products[productIndex].availableInventory = originalInventory - this.cart[productId];
-                    }
-
-                    this.alertUser(`${product.name} has been added to the cart!`, 'success');
                 },
 
+                viewStoreProducts: function (store) {
+                    if (this.isLoggedIn) {
+                        // Set filter and go to products page
+                        this.activeStoreFilter = store._id || store.id;
+                        this.showMap = false;
+                        this.showProducts = true;
+
+                        // Fetch products specific to this store
+                        this.fetchProductsByStore(this.activeStoreFilter).then(products => {
+                            this.searchResults = products; // Update the displayed products
+                            this.alertUser(`Showing products from ${store.name}`, 'success');
+                        });
+                    } else {
+                        this.goToLogin();
+                        this.showMap = false;
+                    }
+                },
                 // Alerts for various purposes
                 alertUser: function (message, type = 'success') {
                     const alert = {
@@ -1111,18 +1187,41 @@
                     };
                 },
 
+                // Add this method to reset store filters
+                clearStoreFilter: function () {
+                    this.activeStoreFilter = null;
+                    this.fetchAllProducts().then(() => {
+                        this.searchResults = this.products;
+                        this.alertUser('Showing all products', 'success');
+                    });
+                },
                 // // Search products request sent from frontend
                 searchProducts: async function () {
                     const query = this.searchQuery.trim();
 
                     try {
-                        // If search query is empty, fetch all products
+                        // If we have an active store filter, use that regardless of search query
+                        if (this.activeStoreFilter) {
+                            if (query === "") {
+                                // Just fetch all products for this store
+                                const storeProducts = await this.fetchProductsByStore(this.activeStoreFilter);
+                                this.searchResults = storeProducts;
+                                return;
+                            }
+
+                            // If there's a search query, filter the store products
+                            const response = await fetch(`http://localhost:5500/products/store/${this.activeStoreFilter}/search?query=${encodeURIComponent(query)}`);
+                            const data = await response.json();
+                            this.searchResults = Array.isArray(data) ? data : [];
+                            return;
+                        }
+
+                        // Normal search functionality (unchanged)
                         if (query === "") {
                             await this.fetchAllProducts();
                             return;
                         }
 
-                        // Make API call to backend search endpoint
                         const response = await fetch(`http://localhost:5500/products/search?query=${encodeURIComponent(query)}`, {
                             method: 'GET',
                             headers: {
@@ -1130,10 +1229,8 @@
                             }
                         });
 
-                        // Parse the response
                         const data = await response.json();
 
-                        // Validate data is an array
                         if (!Array.isArray(data)) {
                             console.error('Expected search results array but got:', data);
                             this.searchResults = [];
@@ -1141,7 +1238,6 @@
                         }
 
                         if (!response.ok) {
-                            // Handle 404 and other errors
                             if (response.status === 404) {
                                 this.searchResults = [];
                                 this.alertUser('No products found matching your search', 'warning');
@@ -1151,10 +1247,8 @@
                             return;
                         }
 
-                        // Update the search results
                         this.searchResults = data;
 
-                        // If results were found, show success message
                         if (data.length > 0) {
                             this.alertUser(`Found ${data.length} product${data.length === 1 ? '' : 's'} matching your search`, 'success');
                         }
@@ -1165,6 +1259,7 @@
                         this.searchResults = [];
                     }
                 },
+
                 // Used for search functionality
                 isSubstring: function (query, name) {
                     for (
@@ -1184,31 +1279,6 @@
                         }
                     }
                     return false;
-                },
-                //Slideshow function
-                showSlides: function () {
-                    let slides = document.getElementsByClassName("mySlides");
-                    let dots = document.getElementsByClassName("dot");
-
-                    if (slides.length === 0 || dots.length === 0) {
-                        // Retry if elements aren't rendered yet
-                        setTimeout(this.showSlides, 100);
-                        return;
-                    }
-
-                    for (let i = 0; i < slides.length; i++) {
-                        slides[i].style.display = "none";
-                    }
-                    this.slideIndex++;
-                    if (this.slideIndex > slides.length) {
-                        this.slideIndex = 1;
-                    }
-                    for (let i = 0; i < dots.length; i++) {
-                        dots[i].className = dots[i].className.replace(" active", "");
-                    }
-                    slides[this.slideIndex - 1].style.display = "block";
-                    dots[this.slideIndex - 1].className += " active";
-                    setTimeout(this.showSlides, 3000); // Change slide every 3 seconds
                 },
                 showNearbyStores: function () {
                     this.showMap = true;
@@ -1370,11 +1440,6 @@
                                 popupContent += `<p>${(store.distance / 1000).toFixed(2)} km away</p>`;
                             }
 
-                            popupContent += `
-                                    <button class="view-store-btn">View Store</button>
-                                </div>
-                            `;
-
                             const popup = L.popup().setContent(popupContent);
                             marker.bindPopup(popup);
 
@@ -1471,7 +1536,8 @@
 
                         const data = await response.json();
                         if (Array.isArray(data)) {
-                            this.storeProducts = data;
+                            this.storeProducts = data; // Still store for sidebar view
+                            return data; // Return the data for use in other methods
                         } else {
                             throw new Error('Products data is not in expected format');
                         }
@@ -1479,80 +1545,209 @@
                         console.error('Error fetching store products:', error);
                         this.alertUser('Error fetching products for this store.', 'error');
                         this.storeProducts = [];
+                        return [];
                     }
                 },
 
                 viewStoreProducts: function (store) {
-                    // Set filter and go to products page
-                    this.activeStoreFilter = store._id || store.id;
-                    this.searchProducts(); // This will filter products based on activeStoreFilter
-                    this.showMap = false;
-                    this.showProducts = true;
+                    if (this.isLoggedIn) {
+                        // Set filter and go to products page
+                        this.activeStoreFilter = store._id || store.id;
+                        this.showMap = false;
+                        this.showProducts = true;
+
+                        // Fetch products specific to this store
+                        this.fetchProductsByStore(this.activeStoreFilter).then(products => {
+                            this.searchResults = products; // Update the displayed products
+                            this.alertUser(`Showing products from ${store.name}`, 'success');
+                        });
+                    } else {
+                        this.goToLogin();
+                        this.showMap = false;
+                    }
+                },
+                // Show stats modal
+                showStats() {
+                    // First fetch latest stats
+                    this.fetchUserStats();
+                    this.showStatsModal = true;
                 },
 
-                // // Modify the existing searchProducts method to handle store filtering
-                // searchProducts: async function () {
-                //     const query = this.searchQuery.trim();
+                // Close stats modal
+                closeStatsModal() {
+                    this.showStatsModal = false;
+                },
 
-                //     try {
-                //         let url = 'http://localhost:5500/products';
+                // Fetch user stats from backend
+                fetchUserStats: async function () {
+                    if (!this.isAuthenticated) return;
 
-                //         // Add search query parameter if provided
-                //         if (query !== "") {
-                //             url = `http://localhost:5500/products/search?query=${encodeURIComponent(query)}`;
-                //         }
+                    try {
+                        const response = await fetch('http://localhost:5500/user/stats/all-stats', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.currentUser?.token || ''}`
+                            }
+                        });
 
-                //         // Add store filter if active
-                //         if (this.activeStoreFilter) {
-                //             url += (url.includes('?') ? '&' : '?') + `storeId=${this.activeStoreFilter}`;
-                //         }
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch user stats');
+                        }
 
-                //         const response = await fetch(url, {
-                //             method: 'GET',
-                //             headers: {
-                //                 'Content-Type': 'application/json',
-                //             }
-                //         });
+                        const data = await response.json();
+                        this.userStats = data;
 
-                //         const data = await response.json();
+                    } catch (error) {
+                        console.error('Error fetching user stats:', error);
+                        // Use default stats if there's an error
+                    }
+                },
 
-                //         if (!Array.isArray(data)) {
-                //             console.error('Expected results array but got:', data);
-                //             this.searchResults = [];
-                //             return;
-                //         }
+                // Update user stats after placing an order
+                updateUserStats: async function (orderDetails) {
+                    if (!this.isAuthenticated) return;
 
-                //         if (!response.ok) {
-                //             if (response.status === 404) {
-                //                 this.searchResults = [];
-                //                 this.alertUser('No products found matching your criteria', 'warning');
-                //             } else {
-                //                 throw new Error(data.message || 'Error performing search');
-                //             }
-                //             return;
-                //         }
+                    // Calculate paper saved based on order
+                    // Assumption: Each product in a flyer would use about 5g of paper
+                    const paperSaved = orderDetails.products.reduce((total, product) => {
+                        return total + (product.quantity * 0.005); // 5g per product
+                    }, 0);
 
-                //         // Update the search results
-                //         this.searchResults = data;
+                    const statsUpdate = {
+                        paperSaved: paperSaved,
+                        ecoPurchases: orderDetails.products.length,
+                        orderId: orderDetails.id
+                    };
 
-                //         // If results were found, show success message
-                //         if (data.length > 0) {
-                //             let message = `Found ${data.length} product${data.length === 1 ? '' : 's'}`;
-                //             if (this.activeStoreFilter) {
-                //                 const store = this.stores.find(s => (s._id || s.id) === this.activeStoreFilter);
-                //                 if (store) {
-                //                     message += ` at ${store.name}`;
-                //                 }
-                //             }
-                //             this.alertUser(message, 'success');
-                //         }
+                    try {
+                        const response = await fetch('http://localhost:5500/user/stats/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.currentUser?.token || ''}`
+                            },
+                            body: JSON.stringify(statsUpdate)
+                        });
 
-                //     } catch (error) {
-                //         console.error('Search error:', error);
-                //         this.alertUser('Error performing search. Please try again.', 'error');
-                //         this.searchResults = [];
-                //     }
-                // }
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            console.error('Server error details:', errorData);
+                            throw new Error(`Failed to update user stats: ${response.status} ${response.statusText}`);
+                        }
+
+                        // Refresh stats
+                        this.fetchUserStats();
+
+                    } catch (error) {
+                        console.error('Error updating user stats:', error);
+                    }
+                },
+
+                // Share stats on social media
+                shareStats() {
+                    // Create share text
+                    const shareText = `I've saved ${this.userStats.paperSaved.toFixed(2)}kg of paper and approximately ${this.getTreesSaved} trees by using EcoShopper! Join me in reducing paper waste.`;
+
+                    // Basic implementation - open a share dialog
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'My EcoShopper Impact',
+                            text: shareText,
+                            url: window.location.href
+                        })
+                            .then(() => this.alertUser('Shared successfully!', 'success'))
+                            .catch(error => console.error('Error sharing:', error));
+                    } else {
+                        // Fallback for browsers that don't support Web Share API
+                        // Copy to clipboard
+                        navigator.clipboard.writeText(shareText)
+                            .then(() => this.alertUser('Stats copied to clipboard. Share with your friends!', 'success'))
+                            .catch(err => this.alertUser('Could not copy text. Please share manually.', 'warning'));
+                    }
+                },
+                // Add order to database, request sent from frontend
+                addOrder: async function () {
+                    this.isLoading = true;
+                    try {
+                        // Get address from coordinates if we have them
+                        let addressToUse = 'Address not provided';
+                        if (this.userLocation) {
+                            addressToUse = await this.getAddressFromCoordinates(
+                                this.userLocation.lat,
+                                this.userLocation.lng
+                            );
+                        }
+
+                        const orderData = {
+                            name: this.order.name,
+                            phone: this.order.phone,
+                            address: addressToUse,
+                            cart: this.cartDetails.map(product => ({
+                                id: product._id || product.id,
+                                name: product.name,
+                                price: product.price,
+                                quantity: product.quantity
+                            })),
+                            total: this.cartTotal,
+                            timestamp: new Date().toISOString()
+                        };
+
+                        const response = await fetch('http://localhost:5500/orders', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(orderData),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to place the order');
+                        }
+
+                        const orderResponse = await response.json();
+
+                        // Update backend inventory
+                        for (let product of this.cartDetails) {
+                            await this.updateAvailability(product._id || product.id, product.quantity);
+                        }
+
+                        // Update receipt
+                        this.orderDetails = {
+                            id: orderResponse.orderId || 'unknown',
+                            name: this.order.name,
+                            phone: this.order.phone,
+                            address: addressToUse,
+                            products: this.cartDetails,
+                            total: this.cartTotal,
+                            date: this.getCurrentDate()
+                        };
+
+                        // Update user stats with the order details
+                        if (this.isAuthenticated) {
+                            await this.updateUserStats(this.orderDetails);
+                        }
+
+                        this.alertUser('Order placed successfully!', 'success');
+
+                        // Reset cart and form
+                        this.cart = {};
+                        this.order.name = '';
+                        this.order.phone = '';
+
+                        this.checkoutPage = false;
+                        this.showReceipt = true;
+
+                        // Refresh products data
+                        await this.fetchAllProducts();
+
+                    } catch (error) {
+                        console.error(error);
+                        this.alertUser('Error placing the order. Please try again later.', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
             },
             created() {
                 this.checkLoginStatus();

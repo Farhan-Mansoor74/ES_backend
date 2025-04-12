@@ -1,11 +1,11 @@
 import express from 'express';
 import connectDB from '../mongodbConnection.js';
-import { isAdmin } from './auth.js';
+import { isAdmin } from '../middleware/authAdmin.js';
 import multer from 'multer';
 import XLSX from 'xlsx';
+import { ObjectId } from 'mongodb';
 
 const router = express.Router();
-
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Admin authentication middleware (only allows admins)
@@ -158,24 +158,38 @@ router.post('/products/upload', upload.single('file'), async (req, res) => {
     }
 });
 
-// Route to update a store by ID
-router.put('/:storeId', async (req, res) => {
+router.put('/updateStore/:storeId', async (req, res) => {
     try {
         const { client, database } = await connectDB();
         const storesCollection = database.collection('Stores');
         const { storeId } = req.params;
-        const updatedStore = req.body;
 
-        const result = await storesCollection.updateOne(
-            { _id: new ObjectId(storeId) },
-            { $set: updatedStore }
-        );
+        // First, find the store to verify it exists and get its current data
+        const existingStore = await storesCollection.findOne({ _id: new ObjectId(storeId) });
 
-        if (result.matchedCount === 0) {
+        if (!existingStore) {
+            await client.close();
             return res.status(404).json({ message: "Store not found" });
         }
 
-        res.status(200).json({ message: "Store updated successfully" });
+        // Get the updated data, excluding _id if it's in the request body
+        const { _id, ...updatedFields } = req.body;
+
+        // Perform the update
+        const result = await storesCollection.updateOne(
+            { _id: new ObjectId(storeId) },
+            { $set: updatedFields }
+        );
+
+        if (result.matchedCount === 0) {
+            await client.close();
+            return res.status(404).json({ message: "Store not found or not updated" });
+        }
+
+        // Fetch the updated store to return in the response
+        const updatedStore = await storesCollection.findOne({ _id: new ObjectId(storeId) });
+
+        res.status(200).json(updatedStore);
         await client.close();
     } catch (error) {
         console.error("Error updating store:", error);
@@ -240,7 +254,7 @@ router.get('/get-admins', async (req, res) => {
     }
 });
 
-router.post('/users', async (req, res) => {
+router.post('/addUser', async (req, res) => {
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password || !role) {
@@ -273,14 +287,19 @@ router.post('/users', async (req, res) => {
     }
 });
 
-import { ObjectId } from 'mongodb';
-
 router.get('/users/:id', async (req, res) => {
     try {
+        const userId = req.params.id;
+
+        // Validate the userId format
+        if (!userId || !ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user ID format" });
+        }
+
         const { client, database } = await connectDB();
         const usersCollection = database.collection('Users');
+        const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
 
-        const user = await usersCollection.findOne({ _id: new ObjectId(req.params.id) });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -289,7 +308,7 @@ router.get('/users/:id', async (req, res) => {
         await client.close();
     } catch (error) {
         console.error("Error fetching user:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });
 
@@ -332,6 +351,23 @@ router.put('/users/:id', async (req, res) => {
     } catch (error) {
         console.error("Error updating user:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Route to count total users
+router.get('/user/count', async (req, res) => {
+    try {
+        const { client, database } = await connectDB();
+        const usersCollection = database.collection('Users');
+
+        const userCount = await usersCollection.countDocuments();
+
+        res.status(200).json({ count: userCount });
+
+        await client.close();
+    } catch (error) {
+        console.error("Error counting users:", error);
+        res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });
 

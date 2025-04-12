@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 router.get('/search', async (req, res) => {
     try {
         const { query } = req.query; // Getting search query from request parameters
-        
+
         if (!query) {
             return res.status(400).json({ message: "Search query is required" });
         }
@@ -47,9 +47,9 @@ router.get('/search', async (req, res) => {
         await client.close();
 
         if (searchResults.length === 0) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 message: "No products found matching your search",
-                results: [] 
+                results: []
             });
         }
 
@@ -78,6 +78,23 @@ router.get('/store/:storeId', async (req, res) => {
         await client.close();
     } catch (error) {
         console.error(`Error fetching products for store ${req.params.storeId}:`, error);
+        res.status(500).json({ message: "Internal server error", error: error.toString() });
+    }
+});
+
+// Route to count total deals/products
+router.get('/count', async (req, res) => {
+    try {
+        const { client, database } = await connectDB();
+        const productsCollection = database.collection('Products');
+
+        const productCount = await productsCollection.countDocuments();
+
+        res.status(200).json({ count: productCount });
+
+        await client.close();
+    } catch (error) {
+        console.error("Error counting products:", error);
         res.status(500).json({ message: "Internal server error", error: error.toString() });
     }
 });

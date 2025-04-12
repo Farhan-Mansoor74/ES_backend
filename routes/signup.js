@@ -32,9 +32,7 @@ router.post('/', async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role || "customer", // Default to "customer" if not specified
-            preferences: role === "customer" ? [] : undefined,
-            saved_stores: role === "customer" ? [] : undefined,
+            role: role || "customer" // Default to "customer" 
         };
 
         const result = await usersCollection.insertOne(newUser);

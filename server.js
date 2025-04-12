@@ -10,7 +10,8 @@ import signUpRouter from './routes/signup.js';
 import loginRouter from './routes/login.js';
 import logoutRouter from './routes/logout.js';
 import adminRouter from './routes/adminBack.js';
-import storesRouter from './routes/stores.js'
+import storesRouter from './routes/stores.js';
+import userStatsRouter from './routes/userStats.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -48,6 +49,7 @@ app.use('/login', loginRouter);
 app.use('/logout', logoutRouter);
 app.use('/admin/fn', adminRouter);  
 app.use('/stores', storesRouter);
+app.use('/user/stats' , userStatsRouter);
 
 // Start the server
 app.listen(PORT, () => {
