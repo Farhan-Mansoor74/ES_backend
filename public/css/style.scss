@@ -190,7 +190,7 @@ a {
     top: calc(50% - 8px);
 		height: 16px;
 		width: 16px;
-		background: url('http://localhost:5500/images/cd-search.svg') no-repeat 0 0;
+		background: url('https://ecoshopper-backend.onrender.com/images/cd-search.svg') no-repeat 0 0;
 	}
 
 	input {
@@ -283,7 +283,7 @@ a {
   height: 16px;
   width: 16px;
   margin-right: var(--space-xs);
-  background: url('http://localhost:5500/images/cd-nav-icons.svg') no-repeat 0 0;
+  background: url('https://ecoshopper-backend.onrender.com/images/cd-nav-icons.svg') no-repeat 0 0;
 }
 
 .cd-side__item {
@@ -337,7 +337,7 @@ a {
 		height: 16px;
 		width: 16px;
 		right: var(--space-md);
-		background: url('http://localhost:5500/images/cd-arrow.svg');
+		background: url('https://ecoshopper-backend.onrender.com/images/cd-arrow.svg');
 	}
 
 	@include breakpoint(md) {

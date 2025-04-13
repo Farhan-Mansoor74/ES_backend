@@ -24,7 +24,7 @@
         <header class="topnav" v-if="!isLoginPage">
             <!-- Logo -->
             <a href="#">
-                <img src="http://localhost:5500/images/EcoShopperLogo.png" id="logo" alt="Logo"
+                <img src="https://ecoshopper-backend.onrender.com/images/EcoShopperLogo.png" id="logo" alt="Logo"
                     @click="toLandingPage" />
             </a>
 
@@ -66,14 +66,14 @@
             <input type="checkbox" id="flip">
             <div class="cover">
                 <div class="front">
-                    <img src="http://localhost:5500/images/frontImg.jpg" alt="">
+                    <img src="https://ecoshopper-backend.onrender.com/images/frontImg.jpg" alt="">
                     <div class="text">
                         <span class="text-1">Every new friend is a <br> new adventure</span>
                         <span class="text-2">Let's get connected</span>
                     </div>
                 </div>
                 <div class="back">
-                    <img class="backImg" src="http://localhost:5500/images/backImg.jpg" alt="">
+                    <img class="backImg" src="https://ecoshopper-backend.onrender.com/images/backImg.jpg" alt="">
                     <div class="text">
                         <span class="text-1">Complete miles of journey <br> with one step</span>
                         <span class="text-2">Let's get started</span>
@@ -369,7 +369,7 @@
         <main v-if="showReceipt" class="receipt-container">
             <div class="receipt">
                 <div class="receipt-header">
-                    <img src="http://localhost:5500/images/EcoShopperLogo.png" alt="Logo" class="receipt-logo" />
+                    <img src="https://ecoshopper-backend.onrender.com/images/EcoShopperLogo.png" alt="Logo" class="receipt-logo" />
                     <h2>Order Confirmation</h2>
                     <p class="receipt-date">{{ getCurrentDate() }}</p>
                 </div>
@@ -707,7 +707,7 @@
                     }
 
                     try {
-                        const response = await fetch('http://localhost:5500/login', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/login', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -780,7 +780,7 @@
                     }
 
                     try {
-                        const response = await fetch('http://localhost:5500/signup', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/signup', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -831,7 +831,7 @@
 
                         // Only try server authentication if endpoint is working
                         /* Commenting out for now since endpoint returns 404
-                        const response = await fetch('http://localhost:5500/auth-status', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/auth-status', {
                             method: 'GET',
                             credentials: 'include'
                         });
@@ -851,7 +851,7 @@
                 // Logout method
                 logout: async function () {
                     try {
-                        const response = await fetch('http://localhost:5500/logout', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/logout', {
                             method: 'POST',
                             credentials: 'include'
                         });
@@ -898,7 +898,7 @@
                 fetchAllProducts: async function () {
                     console.log('FETCHING PRODUCTS');
                     try {
-                        const response = await fetch('http://localhost:5500/products');
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/products');
                         if (!response.ok) {
                             throw new Error('Failed to fetch products');
                         }
@@ -952,7 +952,7 @@
                             quantity
                         });
 
-                        const response = await fetch(`http://localhost:5500/orders/${productId}`, {
+                        const response = await fetch(`https://ecoshopper-backend.onrender.com/orders/${productId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1210,7 +1210,7 @@
                             }
 
                             // If there's a search query, filter the store products
-                            const response = await fetch(`http://localhost:5500/products/store/${this.activeStoreFilter}/search?query=${encodeURIComponent(query)}`);
+                            const response = await fetch(`https://ecoshopper-backend.onrender.com/products/store/${this.activeStoreFilter}/search?query=${encodeURIComponent(query)}`);
                             const data = await response.json();
                             this.searchResults = Array.isArray(data) ? data : [];
                             return;
@@ -1222,7 +1222,7 @@
                             return;
                         }
 
-                        const response = await fetch(`http://localhost:5500/products/search?query=${encodeURIComponent(query)}`, {
+                        const response = await fetch(`https://ecoshopper-backend.onrender.com/products/search?query=${encodeURIComponent(query)}`, {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1295,7 +1295,7 @@
 
                 fetchStores: async function () {
                     try {
-                        const response = await fetch('http://localhost:5500/stores');
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/stores');
                         if (!response.ok) {
                             throw new Error('Failed to fetch stores');
                         }
@@ -1529,7 +1529,7 @@
 
                 fetchProductsByStore: async function (storeId) {
                     try {
-                        const response = await fetch(`http://localhost:5500/products/store/${storeId}`);
+                        const response = await fetch(`https://ecoshopper-backend.onrender.com/products/store/${storeId}`);
                         if (!response.ok) {
                             throw new Error('Failed to fetch store products');
                         }
@@ -1583,7 +1583,7 @@
                     if (!this.isAuthenticated) return;
 
                     try {
-                        const response = await fetch('http://localhost:5500/user/stats/all-stats', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/user/stats/all-stats', {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1621,7 +1621,7 @@
                     };
 
                     try {
-                        const response = await fetch('http://localhost:5500/user/stats/update', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/user/stats/update', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1693,7 +1693,7 @@
                             timestamp: new Date().toISOString()
                         };
 
-                        const response = await fetch('http://localhost:5500/orders', {
+                        const response = await fetch('https://ecoshopper-backend.onrender.com/orders', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

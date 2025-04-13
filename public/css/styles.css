@@ -51,7 +51,7 @@ main {
 
 /* Background Image - Use as a background instead */
 .background-image {
-	background-image: url('http://localhost:5500/images/bg.jpg');
+	background-image: url('https://ecoshopper-backend.onrender.com/images/bg.jpg');
 	position: relative;
 	background-color: #f9f9f9;
 	width: 100%;

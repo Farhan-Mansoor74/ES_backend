@@ -13,7 +13,7 @@
 <body>
   <header class="cd-main-header js-cd-main-header">
     <div class="cd-logo-wrapper">
-      <a href="#0" class="cd-logo"><img src="http://localhost:5500/images/EcoShopperAdminLogo.png" alt="Logo"></a>
+      <a href="#0" class="cd-logo"><img src="https://ecoshopper-backend.onrender.com/images/EcoShopperAdminLogo.png" alt="Logo"></a>
     </div>
 
     <div class="cd-search js-cd-search">
@@ -27,7 +27,7 @@
     <ul class="cd-nav__list js-cd-nav__list">
       <li class="cd-nav__item cd-nav__item--has-children cd-nav__item--account js-cd-item--has-children">
         <a href="#0">
-          <img src="http://localhost:5500/images/cd-avatar.svg" alt="avatar">
+          <img src="https://ecoshopper-backend.onrender.com/images/cd-avatar.svg" alt="avatar">
           <span>Account</span>
         </a>
 
@@ -326,7 +326,7 @@
     // Logout method
     async function logout() {
       try {
-        const response = await fetch('http://localhost:5500/logout', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/logout', {
           method: 'POST',
           credentials: 'include'
         });
@@ -428,7 +428,7 @@
 
         // Stores count
         try {
-          const storesResponse = await fetch('http://localhost:5500/stores/total/count', {
+          const storesResponse = await fetch('https://ecoshopper-backend.onrender.com/stores/total/count', {
             headers
           });
           if (storesResponse.ok) {
@@ -445,7 +445,7 @@
 
         // Products count
         try {
-          const productsResponse = await fetch('http://localhost:5500/products/count', {
+          const productsResponse = await fetch('https://ecoshopper-backend.onrender.com/products/count', {
             headers
           });
           if (productsResponse.ok) {
@@ -462,7 +462,7 @@
 
         // Users count
         try {
-          const usersResponse = await fetch('http://localhost:5500/admin/fn/user/count', {
+          const usersResponse = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/user/count', {
             headers
           });
           if (usersResponse.ok) {
@@ -506,7 +506,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/all-stores', {
           method: 'GET',
           headers: {
             'X-User-Role': role, // Custom header to send role
@@ -571,7 +571,7 @@
         // Check if this is an update or create operation
         if (action === 'update' && id) {
           // Update existing store
-          const response = await fetch(`http://localhost:5500/admin/fn/updateStore/${id}`, {
+          const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/updateStore/${id}`, {
             method: 'PUT',
             headers: {
               'X-User-Role': role,
@@ -596,7 +596,7 @@
           }
         } else {
           // Create new store
-          const response = await fetch('http://localhost:5500/admin/fn/add-store', {
+          const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/add-store', {
             method: 'POST',
             headers: {
               'X-User-Role': role,
@@ -633,7 +633,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/get-admins', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/get-admins', {
           method: 'GET',
           headers: {
             'X-User-Role': role
@@ -688,7 +688,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/addUser', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/addUser', {
           method: 'POST',
           headers: {
             'X-User-Role': role,
@@ -727,7 +727,7 @@
           return;
         }
 
-        const response = await fetch(`http://localhost:5500/admin/fn/updateStore/${id}`, {
+        const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/updateStore/${id}`, {
           method: 'PUT',
           headers: {
             'X-User-Role': role,
@@ -769,7 +769,7 @@
             return;
           }
 
-          const response = await fetch(`http://localhost:5500/admin/fn/delete/${id}`, {
+          const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/delete/${id}`, {
             method: 'DELETE',
             headers: {
               'X-User-Role': role,
@@ -801,7 +801,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/all-stores', {
           method: 'GET',
           headers: {
             'X-User-Role': role,
@@ -841,7 +841,7 @@
       }
 
       try {
-        const response = await fetch(`http://localhost:5500/products/store/${storeId}`);
+        const response = await fetch(`https://ecoshopper-backend.onrender.com/products/store/${storeId}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -887,7 +887,7 @@
             console.error("No role found. User might not be logged in.");
             return;
           }
-          const response = await fetch(`http://localhost:5500/admin/fn/products/delete/${id}`, {
+          const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/products/delete/${id}`, {
             method: 'DELETE',
             headers: {
               'X-User-Role': role
@@ -919,7 +919,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/all-stores', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/all-stores', {
           method: 'GET',
           headers: {
             'X-User-Role': role,
@@ -988,7 +988,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/add-product', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/add-product', {
           method: 'POST',
           headers: {
             'X-User-Role': role,
@@ -1058,7 +1058,7 @@
           return;
         }
 
-        const response = await fetch('http://localhost:5500/admin/fn/products/upload', {
+        const response = await fetch('https://ecoshopper-backend.onrender.com/admin/fn/products/upload', {
           method: 'POST',
           headers: {
             'X-User-Role': role,
@@ -1096,7 +1096,7 @@
           return;
         }
 
-        const response = await fetch(`http://localhost:5500/admin/fn/users/${id}`, {
+        const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/users/${id}`, {
           headers: {
             'X-User-Role': role,
             'Content-Type': 'application/json'
@@ -1127,7 +1127,7 @@
     async function deleteUser(id) {
       if (confirm('Are you sure you want to delete this user?')) {
         try {
-          const response = await fetch(`http://localhost:5500/admin/fn/users/${id}`, {
+          const response = await fetch(`https://ecoshopper-backend.onrender.com/admin/fn/users/${id}`, {
             method: 'DELETE'
           });
 
