@@ -2,6 +2,9 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 // Importing routers
 import productsRouter from './routes/getProducts.js';
@@ -16,7 +19,7 @@ import userStatsRouter from './routes/userStats.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
-const PORT = 5500;
+const PORT = process.env.PORT || 5500;
 
 // Enabling Cross-Origin Resource Sharing (CORS)
 app.use(cors({
@@ -39,6 +42,11 @@ app.get('/', (req, res) => {
 // Serve admin.html at /admin
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Catch-all (after all other routes)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Mounting routers

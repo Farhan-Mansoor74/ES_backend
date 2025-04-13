@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 // MongoDB Atlas Connection URL
-const url = 'mongodb+srv://farhanmansoordxb:farhan8431@cluster0.tb5vm.mongodb.net/'; 
+const url = process.env.MONGO_URI; 
 const dbName = 'EcoShop'; 
 
 async function connectDB() {
