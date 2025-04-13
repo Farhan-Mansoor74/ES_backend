@@ -33,21 +33,21 @@ router.get('/all-stats', authenticateUser, async (req, res) => {
                     },
                     {
                         name: "Paper Saver",
-                        description: "Save 5kg of paper",
+                        description: "Complete 5 eco-friendly purchases",
                         pointsRequired: 100,
                         unlocked: false,
                         icon: "fas fa-file-alt"
                     },
                     {
                         name: "Eco Warrior",
-                        description: "Save 10kg of paper",
+                        description: "Save 5kg of paper",
                         pointsRequired: 200,
                         unlocked: false,
                         icon: "fas fa-award"
                     },
                     {
                         name: "Planet Protector",
-                        description: "Complete 25 eco-friendly purchases",
+                        description: "Complete 40 eco-friendly purchases",
                         pointsRequired: 300,
                         unlocked: false,
                         icon: "fas fa-globe-americas"
