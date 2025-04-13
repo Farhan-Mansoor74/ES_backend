@@ -44,11 +44,6 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Catch-all (after all other routes)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 // Mounting routers
 app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
